@@ -1,3 +1,42 @@
 spring:
   application:
     name: sistticket
+  sql:
+    init:
+      mode: never
+  #  datasource:
+  #      url: ${SB_URL}
+  #      username: ${SB_USERNAME}
+  #      password: ${SB_PASSWORD}
+  #      driver-class-name: oracle.jdbc.OracleDriver
+  # mysql
+  datasource:
+    url: jdbc:mysql://database-1.cng8u84is7q1.ap-northeast-2.rds.amazonaws.com:3306/sistticketdb
+    username: sistadmin
+    password: dkagh1.
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    #jpa 설정
+  jpa:
+    database: mysql
+    generate-ddl: false
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+      id:
+        sequence:
+          increment_size_mismatch_strategy: none
+          dialect: org.hibernate.dialect.MySQLDialect
+      defer-datasource-initialization: true
+      #logging:
+      #  level:
+      #    org.hibernate.orm.jdbc.bind: trace
+      #
+server:
+  port: 80

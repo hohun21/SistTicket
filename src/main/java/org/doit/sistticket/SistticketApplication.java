@@ -1,4 +1,4 @@
-package org.doit.sistticket;
+package org.doit.SistTicket;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
