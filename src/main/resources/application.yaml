@@ -22,7 +22,7 @@ spring:
     database: mysql
     generate-ddl: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
