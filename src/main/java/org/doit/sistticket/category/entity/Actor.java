@@ -13,7 +13,7 @@ public class Actor {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "actor_id")
+	@Column(name = "actor_id", nullable= false)
 	private long actorId;
 	
 	@Column(name = "actor_name", nullable= false)

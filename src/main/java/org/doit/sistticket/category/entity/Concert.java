@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -18,8 +20,10 @@ public class Concert {
 	@Column(name = "concert_id", nullable=false)
 	private long concertId;
 	
-	@Column(name = "venue_id", nullable=false)
-	private long venueId;
+	//concerts - venues
+	@ManyToOne
+    @JoinColumn(name = "venue_id", nullable=false)
+    private Venue venue;
 	
 	@Column(name = "start_date")
 	private LocalDateTime startDate;
@@ -28,7 +32,7 @@ public class Concert {
 	private LocalDateTime endDate;
 	
 	@Column(name = "concert_name", nullable=false)
-	private String concert_name;
+	private String concertName;
 	
 	@Column(name = "run_time")
 	private Duration runTime;
