@@ -13,7 +13,7 @@ spring:
   datasource:
     url: jdbc:mysql://database-1.cng8u84is7q1.ap-northeast-2.rds.amazonaws.com:3306/sistticketdb
     username: sistadmin
-    password: dkagh1.
+    password: dkagh1..
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
