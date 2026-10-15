@@ -7,13 +7,14 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity(name ="member")
+@Entity(name ="members")
 @Getter @Setter
 
 public class Members extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long member_id;
+    @Column(name="members_id")
+    private Long memberId;
 
     @Column(nullable = false, length = 100)
     private String email;
@@ -29,8 +30,8 @@ public class Members extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name="member_roles",
-    joinColumns = @JoinColumn(name="member_id")
+    @CollectionTable(name="members_roles",
+    joinColumns = @JoinColumn(name="members_id")
     )
     @Column(name="role")
     private Set<Role> roles = new HashSet<>();

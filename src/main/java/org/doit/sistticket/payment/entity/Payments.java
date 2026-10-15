@@ -27,9 +27,6 @@ public class Payments {
     @Column(name = "payment_id")
     private Long paymentId;
 
-    @Column(name = "orders_id", nullable = false)
-    private Long ordersId;
-
     @Column(name = "payment_method", nullable = false, length = 30)
     private String paymentMethod;
 
