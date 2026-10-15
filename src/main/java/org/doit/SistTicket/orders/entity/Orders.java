@@ -3,8 +3,8 @@ package org.doit.sistticket.orders.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.doit.sistticket.performance.entity.Performances;
-
+import org.doit.sistticket.category.entity.Performances;
+import org.doit.sistticket.member.entity.Members;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
