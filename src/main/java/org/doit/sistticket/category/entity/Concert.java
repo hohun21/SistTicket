@@ -42,5 +42,10 @@ public class Concert {
 	@Column(name = "status")
 	private String status;
 	
+	//concerts - genre
+	@ManyToOne
+	@JoinColumn(name = "genre_id", nullable=false)
+	private Genre genre;	
+	
 
 }
