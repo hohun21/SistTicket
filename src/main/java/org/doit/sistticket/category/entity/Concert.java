@@ -3,6 +3,8 @@ package org.doit.sistticket.category.entity;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.doit.sistticket.venue.entity.Venue;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

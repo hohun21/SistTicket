@@ -1,5 +1,7 @@
 package org.doit.sistticket.category.entity;
 
+import org.doit.sistticket.actor.entity.Actor;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
