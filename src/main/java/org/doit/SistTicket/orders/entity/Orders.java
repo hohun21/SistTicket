@@ -1,10 +1,9 @@
-package org.doit.SistTicket.order.entity;
+package org.doit.sistticket.orders.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.doit.SistTicket.performance.entity.Performances;
-import org.springframework.boot.json.JsonWriter.Members;
+import org.doit.sistticket.performance.entity.Performances;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

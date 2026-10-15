@@ -1,9 +1,9 @@
-package org.doit.SistTicket.payment.entity;
+package org.doit.sistticket.payments.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.doit.SistTicket.order.entity.Orders;
+import org.doit.sistticket.orders.entity.Orders;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
