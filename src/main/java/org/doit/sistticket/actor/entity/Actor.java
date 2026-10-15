@@ -1,4 +1,4 @@
-package org.doit.sistticket.category.entity;
+package org.doit.sistticket.actor.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
