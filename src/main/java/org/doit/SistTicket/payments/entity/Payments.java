@@ -3,7 +3,11 @@ package org.doit.sistticket.payments.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+<<<<<<<< HEAD:src/main/java/org/doit/SistTicket/payments/entity/Payments.java
 import org.doit.sistticket.orders.entity.Orders;
+========
+import org.doit.sistticket.order.entity.Orders;
+>>>>>>>> origin/main:src/main/java/org/doit/sistticket/payment/entity/Payments.java
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +17,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+<<<<<<<< HEAD:src/main/java/org/doit/SistTicket/payments/entity/Payments.java
+========
+
+>>>>>>>> origin/main:src/main/java/org/doit/sistticket/payment/entity/Payments.java
 import jakarta.persistence.Table;
 import lombok.Getter;
 
@@ -44,6 +52,10 @@ public class Payments {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
+<<<<<<<< HEAD:src/main/java/org/doit/SistTicket/payments/entity/Payments.java
+========
+
+>>>>>>>> origin/main:src/main/java/org/doit/sistticket/payment/entity/Payments.java
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orders_id")
     private Orders orders;

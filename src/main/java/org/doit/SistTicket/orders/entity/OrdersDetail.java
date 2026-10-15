@@ -3,7 +3,7 @@ package org.doit.sistticket.orders.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.doit.sistticket.performance.entity.PerformanceSeats;
+import org.doit.sistticket.seat.entity.PerformanceSeat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +28,7 @@ public class OrdersDetail {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performance_seat_id")
-    private PerformanceSeats performanceSeat;
+    private PerformanceSeat performanceSeat;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orders_id")
