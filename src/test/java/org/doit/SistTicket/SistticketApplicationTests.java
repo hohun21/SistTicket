@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SistticketApplicationTests {
+class SistTicketApplicationTests {
 
 	@Test
 	void contextLoads() {
