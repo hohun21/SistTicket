@@ -42,4 +42,24 @@ public class PerformanceSeat {
 
     @Column(name = "hold_expires_at")
     private LocalDateTime holdExpiresAt;
+    
+    // 내 필요로 새로 추가
+    // 좌석 임시 선점
+    public void hold(LocalDateTime expiresAt) {
+    	this.status = "HELD";
+    	this.holdExpiresAt = expiresAt;
+    }
+    
+    // 예매 확정
+    public void reserve() {
+    	this.status = "RESERVED";
+    	this.holdExpiresAt = null;
+    }
+    
+    // 좌석 반환
+    public void release() {
+    	this.status = "AVAILABLE";
+    	this.holdExpiresAt = null;
+    }
+    
 }

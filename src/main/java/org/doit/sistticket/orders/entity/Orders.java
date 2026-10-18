@@ -5,8 +5,12 @@ import java.time.LocalDateTime;
 
 import org.doit.sistticket.category.entity.Performances;
 import org.doit.sistticket.member.entity.Members;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +22,7 @@ import lombok.Getter;
 
 @Getter
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "orders")
 public class Orders {
 
@@ -40,9 +45,24 @@ public class Orders {
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // JPA
     protected Orders() {
     }
-}
+    
+    // 새로운 주문 만들때
+    public Orders(
+    		Members members,
+    		Performances performances,
+    		String orderNo,
+    		BigDecimal totalAmount) {
+    	this.member = members;
+    	this.performance = performances;
+    	this.orderNo = orderNo;
+    	this.totalAmount = totalAmount;
+    }
+    
+} // class
