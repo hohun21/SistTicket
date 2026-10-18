@@ -22,9 +22,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/concert/list", "/signup",
                         "/css/**",
                         "/images/**",
-                        "/js/**",
-                        "/resources/**",
-                        "/favicon.ico").permitAll()
+                        "/js/**"
+                        ).permitAll()
                 .anyRequest().authenticated())
                 // 2. 로그인 페이지 설정, 성공 시 url, 로그인 페이지 권한
                 .formLogin(form -> form
