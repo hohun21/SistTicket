@@ -7,6 +7,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -17,8 +22,10 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+                .cors(cors-> {})
                 // 1. URL별 접근 권한
             .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/", "/concert/list", "/signup",
                         "/css/**",
                         "/images/**",
@@ -27,13 +34,30 @@ public class SecurityConfig {
                         "/favicon.ico",
                         "/api/reviews/**",
                         "/mypage").permitAll()
-
                 .anyRequest().authenticated())
                 // 2. 로그인 페이지 설정, 성공 시 url, 로그인 페이지 권한
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/",false)
+                        .usernameParameter("email")
+                        .passwordParameter("password")
+                        .successHandler((req, res, auth) -> {
+                            System.out.println("로그인 성공 핸들러 실행");
+                            System.out.println("사용자: " + auth.getName());
+                            System.out.println("권한: " + auth.getAuthorities());
+
+                            boolean isAdmin = auth.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+                            if (isAdmin) {
+                                System.out.println("관리자 분기 실행");
+                                res.sendRedirect("http://localhost:5173");
+                                return;
+                            }
+
+                            System.out.println("일반 사용자 분기 실행");
+                            res.sendRedirect("/");
+                        })
                         .permitAll())
 
                 .logout(logout -> logout
@@ -57,6 +81,26 @@ public class SecurityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins((
+                List.of("http://localhost:5173")
+                ));
+        config.setAllowedHeaders(List.of("*"));
+
+        // 세션 쿠키 사용
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/api/**", config);
+
+        return source;
     }
 
 
