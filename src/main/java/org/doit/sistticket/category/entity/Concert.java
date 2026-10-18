@@ -7,6 +7,8 @@ import org.doit.sistticket.venue.entity.Venue;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,8 +54,9 @@ public class Concert {
 	@Column(name = "run_time")
 	private Duration runTime;
 	
-	@Column(name = "status")
-	private String status;
+	@Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ConcertStatus status;
 	
 	//concerts - genre
 	@ManyToOne

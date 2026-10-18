@@ -7,6 +7,8 @@ import org.doit.sistticket.venue.entity.Venue;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -48,8 +50,9 @@ public class Performances {
 	@Column(name = "booking_end")
 	private LocalDateTime bookingEnd;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
-	private String status;
+	private PerformanceStatus status;
 	
 
 }

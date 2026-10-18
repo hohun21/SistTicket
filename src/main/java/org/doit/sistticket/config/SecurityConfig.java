@@ -19,7 +19,7 @@ public class SecurityConfig {
         http
                 // 1. URL별 접근 권한
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/concert/list", "/signup",
+                .requestMatchers("/", "/concert/**", "/signup",
                         "/css/**",
                         "/images/**",
                         "/js/**",
