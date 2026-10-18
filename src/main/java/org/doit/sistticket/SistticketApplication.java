@@ -4,10 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SistTicketApplication {
-
+public class SistticketApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(SistTicketApplication.class, args);
+		SpringApplication.run(SistticketApplication.class, args);
 	}
-
 }
