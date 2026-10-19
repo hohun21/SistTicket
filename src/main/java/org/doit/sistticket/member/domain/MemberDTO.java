@@ -13,13 +13,14 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberDTO {
-
+    private long memberId;
     private String email;
     private String password;
     private String name;
     private String phone;
     public static MemberDTO entityToDTO(Members entity) {
         return MemberDTO.builder()
+                .memberId(entity.getMemberId())
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .name(entity.getName())
