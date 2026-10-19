@@ -1,6 +1,7 @@
 package org.doit.sistticket.member.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.doit.sistticket.member.entity.Members;
 import org.doit.sistticket.member.repository.MemberRepository;
 import org.doit.sistticket.security.CustomerUserDetails;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class CustomerUserDetailsService implements UserDetailsService {
 
     private final MemberRepository memberRepository;

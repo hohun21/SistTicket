@@ -7,7 +7,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="/images/SiSt.ico">
 <title>2026-10-14 오후 4:48</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<link rel="stylesheet" href="/resources/cdn-main/example.css">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
 <script src="/resources/cdn-main/example.js"></script>
 <style>
  span.material-symbols-outlined{
@@ -19,18 +19,121 @@
 <header>
   <h1 class="main"><a href="#" style="position: absolute;top:30px;">HOON HOme</a></h1>
   <ul>
-    <li><a th:href="@{/login}">로그인</a></li>
-    <li><a href="#">회원가입</a></li>
+    <!-- 로그인하지 않은 사용자 -->
+    <th:block th:if="${#authorization.expression('isAnonymous()')}">
+      <li>
+        <a th:href="@{/login}">로그인</a>
+      </li>
+      <li>
+        <a th:href="@{/signup}">회원가입</a>
+      </li>
+    </th:block>
+
+    <!-- 로그인한 사용자 -->
+    <th:block th:if="${#authorization.expression('isAuthenticated()')}">
+      <li class="welcome-message">
+        <span sec:authentication="principal.member.name"></span>님 반갑습니다.
+      </li>
+      <li>
+        <form th:action="@{/logout}" method="post">
+          <button type="submit" class="logout-button btn btn-primary">
+            로그아웃
+          </button>
+        </form>
+      </li>
+    </th:block>
   </ul>
 </header>
-<div>
-  <xmp class="code">
+<main>
+  <section class="hero">
+    <div class="hero-content">
+      <span class="hero-label">SIST TICKET</span>
+      <h2>당신의 다음 순간,<br>무대 위에서</h2>
+      <p>
+        기다려 온 공연을 만나고<br>
+        잊지 못할 순간을 예매하세요.
+      </p>
+      <a th:href="@{/concert/list}" class="btn btn-primary">
+        공연 둘러보기 →
+      </a>
+    </div>
+  </section>
 
-  </xmp>
-  <!-- 로그인 사용자만 표시 -->
-  <div sec:authorize="isAuthenticated()">
-    <span sec:authentication="name"> 님 환영합니다.</span>
-  </div>
-</div>
+  <section class="section">
+    <h2 class="section-title">인기 공연</h2>
+    <p class="section-description">
+      지금 주목받는 뮤지컬과 공연을 만나보세요.
+    </p>
+
+    <div class="concert-grid">
+      <article class="concert-card">
+        <div class="concert-poster">
+          <img src="/images/sample1.jpg"
+               alt="뮤지컬 공연 포스터">
+        </div>
+        <div class="concert-info">
+          <span class="concert-category">MUSICAL</span>
+          <h3 class="concert-title">뮤지컬 공연 A</h3>
+          <p class="concert-meta">서울 · 공연장 A</p>
+          <p class="concert-meta">2026.11.01 - 2026.12.31</p>
+          <a th:href="@{/concert/list}"
+             class="btn btn-primary">예매하기</a>
+        </div>
+      </article>
+
+      <article class="concert-card">
+        <div class="concert-poster">
+          <img src="/images/sample2.jpg"
+               alt="뮤지컬 공연 포스터">
+        </div>
+        <div class="concert-info">
+          <span class="concert-category">MUSICAL</span>
+          <h3 class="concert-title">뮤지컬 공연 B</h3>
+          <p class="concert-meta">서울 · 공연장 B</p>
+          <p class="concert-meta">공연 일정 확인</p>
+          <a th:href="@{/concert/list}"
+             class="btn btn-primary">예매하기</a>
+        </div>
+      </article>
+
+      <article class="concert-card">
+        <div class="concert-poster">
+          <img src="/images/sample3.jpg"
+               alt="뮤지컬 공연 포스터">
+        </div>
+        <div class="concert-info">
+          <span class="concert-category">MUSICAL</span>
+          <h3 class="concert-title">뮤지컬 공연 C</h3>
+          <p class="concert-meta">서울 · 공연장 C</p>
+          <p class="concert-meta">공연 일정 확인</p>
+          <a th:href="@{/concert/list}"
+             class="btn btn-primary">예매하기</a>
+        </div>
+      </article>
+
+      <article class="concert-card">
+        <div class="concert-poster">
+          <img src="/images/sample4.jpg"
+               alt="뮤지컬 공연 포스터">
+        </div>
+        <div class="concert-info">
+          <span class="concert-category">MUSICAL</span>
+          <h3 class="concert-title">뮤지컬 공연 D</h3>
+          <p class="concert-meta">서울 · 공연장 D</p>
+          <p class="concert-meta">공연 일정 확인</p>
+          <a th:href="@{/concert/list}"
+             class="btn btn-primary">예매하기</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+
 </body>
+<footer>
+  <p><strong>SistTicket</strong></p>
+  <p>당신의 특별한 순간을 위한 티켓팅 서비스</p>
+  <p>© 2026 SistTicket. All rights reserved.</p>
+</footer>
 </html>
