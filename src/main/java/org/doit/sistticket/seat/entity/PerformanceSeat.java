@@ -1,4 +1,3 @@
-
 package org.doit.sistticket.seat.entity;
 
 import java.time.LocalDateTime;

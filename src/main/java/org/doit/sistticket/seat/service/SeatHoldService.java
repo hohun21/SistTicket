@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.doit.sistticket.member.entity.Members;
 import org.doit.sistticket.member.repository.MemberRepository;
+import org.doit.sistticket.orders.enums.OrdersDetailStatus;
+import org.doit.sistticket.orders.repository.OrdersDetailRepository;
 import org.doit.sistticket.seat.dto.SeatHoldResponse;
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
@@ -23,6 +25,7 @@ public class SeatHoldService {
 
     private final PerformanceSeatRepository performanceSeatRepository;
     private final MemberRepository memberRepository;
+    private final OrdersDetailRepository ordersDetailRepository;
 
     // 좌석 선점
     @Transactional
@@ -69,5 +72,48 @@ public class SeatHoldService {
 
         return new SeatHoldResponse(
                 holdToken, performanceSeatIds, expiresAt);
+    }
+    
+    // 좌석 선점 취소
+    @Transactional
+    public void cancelHold(Long performanceId, String holdToken, Long memberId) {
+        if (holdToken == null || holdToken.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "선점 토큰이 없습니다.");
+        }
+
+        List<PerformanceSeat> seats =
+                performanceSeatRepository.findByHoldTokenForUpdate(holdToken);
+
+        if (seats.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "취소할 선점을 찾을 수 없습니다.");
+        }
+
+        for (PerformanceSeat seat : seats) {
+        	if (seat.getPerformance().getPerformanceId() != performanceId.longValue()
+        	        || !"HELD".equals(seat.getStatus())) {
+        	    throw new ResponseStatusException(
+        	            HttpStatus.CONFLICT, "취소할 수 없는 좌석입니다.");
+        	}
+
+            if (seat.getHoldMember() == null
+                    || !seat.getHoldMember().getMemberId().equals(memberId)) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN, "본인의 선점이 아닙니다.");
+            }
+        }
+
+        List<Long> seatIds = seats.stream()
+                .map(PerformanceSeat::getPerformanceSeatId)
+                .toList();
+
+        if (ordersDetailRepository.hasOrderForSeats(
+                seatIds, OrdersDetailStatus.PENDING)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "주문이 생성된 좌석은 여기서 취소할 수 없습니다.");
+        }
+
+        seats.forEach(PerformanceSeat::release);
     }
 }

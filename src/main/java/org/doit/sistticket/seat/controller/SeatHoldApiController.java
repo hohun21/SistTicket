@@ -1,5 +1,6 @@
 package org.doit.sistticket.seat.controller;
 
+import org.doit.sistticket.seat.dto.SeatHoldCancelRequest;
 import org.doit.sistticket.seat.dto.SeatHoldRequest;
 import org.doit.sistticket.seat.dto.SeatHoldResponse;
 import org.doit.sistticket.seat.service.SeatHoldService;
@@ -22,10 +23,11 @@ public class SeatHoldApiController {
 
     private final SeatHoldService seatHoldService;
 
+    // 좌석 선점
     @PostMapping("/{performanceId}/holds")
     @ResponseStatus(HttpStatus.CREATED)
     public SeatHoldResponse holdSeats(
-            @PathVariable Long performanceId,
+    		@PathVariable("performanceId") Long performanceId,
             @RequestBody SeatHoldRequest request,
             @AuthenticationPrincipal CustomerUserDetails userDetails) {
 
@@ -33,5 +35,19 @@ public class SeatHoldApiController {
     	
         return seatHoldService.holdSeats(
                 performanceId, request.getPerformanceSeatIds(), memberId);
+    }
+    
+    // 선점 취소
+    @PostMapping("/{performanceId}/holds/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelHold(
+    		@PathVariable("performanceId") Long performanceId,
+            @RequestBody SeatHoldCancelRequest request,
+            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+
+        Long memberId = userDetails.getMember().getMemberId();
+
+        seatHoldService.cancelHold(
+                performanceId, request.getHoldToken(), memberId);
     }
 }
