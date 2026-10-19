@@ -51,7 +51,7 @@ public class SecurityConfig {
 
                             if (isAdmin) {
                                 System.out.println("관리자 분기 실행");
-                                res.sendRedirect("http://localhost:5173");
+                                res.sendRedirect("http://localhost:5173/admin");
                                 return;
                             }
 
