@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import org.doit.sistticket.member.entity.Members;
+import org.doit.sistticket.member.repository.MemberRepository;
 import org.doit.sistticket.seat.dto.SeatHoldResponse;
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
@@ -20,11 +22,14 @@ import lombok.RequiredArgsConstructor;
 public class SeatHoldService {
 
     private final PerformanceSeatRepository performanceSeatRepository;
+    private final MemberRepository memberRepository;
 
     // 좌석 선점
     @Transactional
     public SeatHoldResponse holdSeats(
-            Long performanceId, List<Long> performanceSeatIds) {
+            Long performanceId
+            , List<Long> performanceSeatIds
+            , Long memberId) {
 
         if (performanceSeatIds == null || performanceSeatIds.isEmpty()
                 || performanceSeatIds.contains(null)
@@ -53,10 +58,13 @@ public class SeatHoldService {
 
         // 선점 토큰, 선점 기한 발급
         String holdToken = UUID.randomUUID().toString();
-        LocalDateTime expiresAt = now.plusMinutes(5);
+        LocalDateTime expiresAt = now.plusMinutes(30);
+        
+        Members member = memberRepository.findById(memberId)
+        								.orElseThrow( () -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
         for (PerformanceSeat seat : seats) {
-            seat.hold(holdToken, expiresAt);
+            seat.hold(holdToken, expiresAt, member);
         }
 
         return new SeatHoldResponse(

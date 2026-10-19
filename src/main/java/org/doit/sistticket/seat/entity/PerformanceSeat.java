@@ -4,6 +4,7 @@ package org.doit.sistticket.seat.entity;
 import java.time.LocalDateTime;
 
 import org.doit.sistticket.category.entity.Performances;
+import org.doit.sistticket.member.entity.Members;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,6 +53,10 @@ public class PerformanceSeat {
 
     @Column(name = "hold_token", length = 36)
     private String holdToken;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hold_member_id")
+    private Members holdMember;
 
     // 현재 좌석을 선점할 수 있는지 확인
     public boolean canHold(LocalDateTime now) {
@@ -72,10 +77,11 @@ public class PerformanceSeat {
     }
 
     // 토큰을 이용하는 좌석 홀드 기능
-    public void hold(String holdToken, LocalDateTime expiresAt) {
+    public void hold(String holdToken, LocalDateTime expiresAt, Members member) {
         this.status = "HELD";
         this.holdToken = holdToken;
         this.holdExpiresAt = expiresAt;
+        this.holdMember = member;
     }
 
     // 해당 토큰으로 예약 확정이 가능한지 확인
@@ -92,6 +98,7 @@ public class PerformanceSeat {
         this.status = "RESERVED";
         this.holdToken = null;
         this.holdExpiresAt = null;
+        this.holdMember = null;
     }
 
     // 좌석 팀원의 예약 확정 메서드
@@ -104,5 +111,7 @@ public class PerformanceSeat {
         this.status = "AVAILABLE";
         this.holdToken = null;
         this.holdExpiresAt = null;
+        this.holdMember = null;
     }
+    
 }

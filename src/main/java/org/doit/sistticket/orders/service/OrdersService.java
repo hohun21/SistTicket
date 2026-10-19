@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.doit.sistticket.category.entity.Performances;
@@ -23,8 +24,10 @@ import org.doit.sistticket.payments.enums.PaymentStatus;
 import org.doit.sistticket.payments.repository.PaymentsRepository;
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,299 +36,309 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class OrdersService {
 
-    private final OrdersRepository ordersRepository;
-    private final OrdersDetailRepository ordersDetailRepository;
-    private final PerformanceSeatRepository performanceSeatRepository;
-    private final MemberRepository memberRepository;
-    private final PerformancesRepository performancesRepository;
-    private final PaymentsRepository paymentsRepository;
+	private final OrdersRepository ordersRepository;
+	private final OrdersDetailRepository ordersDetailRepository;
+	private final PerformanceSeatRepository performanceSeatRepository;
+	private final MemberRepository memberRepository;
+	private final PerformancesRepository performancesRepository;
+	private final PaymentsRepository paymentsRepository;
 
-    @Transactional
-    public Orders createOrder(
-            Long memberId,
-            Long performanceId,
-            List<Long> performanceSeatIds,
-            String paymentMethod) {
+	@Transactional
+	public Orders createOrder(
+			Long memberId,
+			Long performanceId,
+			List<Long> performanceSeatIds,
+			String paymentMethod,
+			String holdToken) {
 
-        // 1. 요청값 검증
-        if (performanceSeatIds == null || performanceSeatIds.isEmpty()) {
-            throw new IllegalArgumentException("선택한 좌석이 없습니다.");
-        }
+		// 1. 요청값 검증
+		if (performanceSeatIds == null || performanceSeatIds.isEmpty()) {
+			throw new IllegalArgumentException("선택한 좌석이 없습니다.");
+		}
 
-        if (new HashSet<>(performanceSeatIds).size()
-                != performanceSeatIds.size()) {
-            throw new IllegalArgumentException("중복된 좌석이 포함되어 있습니다.");
-        }
+		if (performanceSeatIds.stream().anyMatch(id -> id == null)) {
+			throw new IllegalArgumentException("좌석 ID가 올바르지 않습니다.");
+		}
 
-        if (performanceSeatIds.stream().anyMatch(id -> id == null)) {
-            throw new IllegalArgumentException("좌석 ID가 올바르지 않습니다.");
-        }
+		if (new HashSet<>(performanceSeatIds).size()
+				!= performanceSeatIds.size()) {
+			throw new IllegalArgumentException("중복된 좌석이 포함되어 있습니다.");
+		}
 
-        if (paymentMethod == null || paymentMethod.isBlank()) {
-            throw new IllegalArgumentException("결제 수단을 입력해 주세요.");
-        }
+		if (holdToken == null || holdToken.isBlank()) {
+			throw new IllegalArgumentException("좌석 선점 토큰이 없습니다.");
+		} 
 
-        // 2. 회원 및 공연 조회
-        Members member = memberRepository.findById(memberId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+		if (paymentMethod == null || paymentMethod.isBlank()) {
+			throw new IllegalArgumentException("결제 수단을 입력해 주세요.");
+		}
 
-        Performances performance = performancesRepository.findById(performanceId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("공연 정보를 찾을 수 없습니다."));
+		// 2. 회원 및 공연 조회
+		Members member = memberRepository.findById(memberId)
+				.orElseThrow(() ->
+				new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
 
-        LocalDateTime now = LocalDateTime.now();
+		Performances performance = performancesRepository.findById(performanceId)
+				.orElseThrow(() ->
+				new IllegalArgumentException("공연 정보를 찾을 수 없습니다."));
 
-        // 3. 좌석 ID를 정렬해 일정한 순서로 잠금 획득
-        List<Long> sortedIds = performanceSeatIds.stream()
-                .sorted()
-                .toList();
+		LocalDateTime now = LocalDateTime.now();
 
-        List<PerformanceSeat> seats = new ArrayList<>();
+		// 3. 토큰으로 선점된 좌석 조회 및 잠금
+		List<PerformanceSeat> heldSeats =
+				performanceSeatRepository.findByHoldTokenForUpdate(holdToken);
 
-        for (Long seatId : sortedIds) {
-            PerformanceSeat seat = performanceSeatRepository
-                    .findByIdForUpdate(seatId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "좌석 정보를 찾을 수 없습니다: " + seatId));
+		if (heldSeats.isEmpty()) {
+			throw new IllegalStateException(
+					"선점된 좌석을 찾을 수 없습니다. 다시 좌석을 선택해 주세요.");
+		}
+		
+		for (PerformanceSeat seat : heldSeats) {
+		    if (seat.getHoldMember() == null
+		            || !seat.getHoldMember().getMemberId().equals(memberId)) {
+		        throw new ResponseStatusException(
+		                HttpStatus.FORBIDDEN,
+		                "해당 좌석의 선점 회원이 아닙니다."
+		        );
+		    }
+		}
+		
 
-            // 4. 선택한 좌석이 해당 공연에 속하는지 확인
-            if (seat.getPerformance().getPerformanceId()
-                    != performance.getPerformanceId()) {
-                throw new IllegalArgumentException(
-                        "선택한 공연에 속하지 않는 좌석이 있습니다.");
-            }
+		// 4. 요청 좌석 목록과 토큰에 연결된 좌석 목록 비교
+		List<Long> requestedIds = performanceSeatIds.stream()
+				.sorted()
+				.toList();
 
-            // 5. 좌석 상태 검증
-            String status = seat.getStatus();
+		List<Long> tokenSeatIds = heldSeats.stream()
+				.map(PerformanceSeat::getPerformanceSeatId)
+				.sorted()
+				.toList();
 
-            if ("RESERVED".equals(status)) {
-                throw new IllegalStateException(
-                        "이미 예약 완료된 좌석입니다: " + seatId);
-            }
+		if (!requestedIds.equals(tokenSeatIds)) {
+			throw new IllegalArgumentException(
+					"요청한 좌석 목록과 선점한 좌석 목록이 일치하지 않습니다.");
+		}
 
-            if ("HELD".equals(status)) {
-                LocalDateTime expiresAt = seat.getHoldExpiresAt();
+		// 가격 계산 및 주문 상세 생성 순서를 일치시키기 위해 정렬
+		heldSeats.sort(
+				java.util.Comparator.comparing(
+						PerformanceSeat::getPerformanceSeatId));
 
-                if (expiresAt == null || expiresAt.isAfter(now)) {
-                    throw new IllegalStateException(
-                            "다른 사용자가 결제진행 중인 좌석입니다: " + seatId);
-                }
-            } else if (!"AVAILABLE".equals(status)) {
-                throw new IllegalStateException(
-                        "예약할 수 없는 좌석 상태입니다: " + seatId);
-            }
+		// 5. 토큰, 공연, 좌석 상태 및 만료 시각 검증
+		for (PerformanceSeat seat : heldSeats) {
 
-            seats.add(seat);
-        }
+			if (!seat.canConfirm(holdToken, now)) {
+				throw new IllegalStateException(
+						"좌석 선점이 만료되었거나 유효하지 않습니다.");
+			}
 
-        // 6. 서버에서 좌석별 가격을 조회해 총액 계산
-        List<BigDecimal> prices = new ArrayList<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
+			if (!java.util.Objects.equals(
+					seat.getPerformance().getPerformanceId(),
+					performance.getPerformanceId())) {
+				throw new IllegalArgumentException(
+						"선택한 공연에 속하지 않는 좌석이 있습니다.");
+			}
+		}
 
-        for (PerformanceSeat seat : seats) {
-            Integer price = seat.getSeat().getSeatGrade().getPrice();
+		// 6. 서버에서 좌석별 가격 조회 및 총액 계산
+		List<BigDecimal> prices = new ArrayList<>();
+		BigDecimal totalAmount = BigDecimal.ZERO;
 
-            if (price == null || price < 0) {
-                throw new IllegalStateException(
-                        "좌석 가격 정보가 올바르지 않습니다.");
-            }
+		for (PerformanceSeat seat : heldSeats) {
+			Integer price = seat.getSeat().getSeatGrade().getPrice();
 
-            BigDecimal detailPrice = BigDecimal.valueOf(price);
+			if (price == null || price < 0) {
+				throw new IllegalStateException(
+						"좌석 가격 정보가 올바르지 않습니다.");
+			}
 
-            prices.add(detailPrice);
-            totalAmount = totalAmount.add(detailPrice);
-        }
+			BigDecimal detailPrice = BigDecimal.valueOf(price);
 
-        // 7. 주문 생성올
-        String orderNo = "ORD-" + UUID.randomUUID();
+			prices.add(detailPrice);
+			totalAmount = totalAmount.add(detailPrice);
+		}
 
-        Orders order = new Orders(
-                member,
-                performance,
-                orderNo,
-                totalAmount
-        );
+		// 7. 주문 생성
+		String orderNo = "ORD-" + UUID.randomUUID();
 
-        Orders savedOrder = ordersRepository.save(order);
+		Orders order = new Orders(
+				member,
+				performance,
+				orderNo,
+				totalAmount
+				);
 
-        // 8. 좌석 임시 점유 및 주문 상세 생성
-        List<OrdersDetail> details = new ArrayList<>();
+		Orders savedOrder = ordersRepository.save(order);
 
-        for (int i = 0; i < seats.size(); i++) {
-            PerformanceSeat seat = seats.get(i);
+		// 8. 기존 좌석 선점은 유지하고 주문 상세만 생성
+		List<OrdersDetail> details = new ArrayList<>();
 
-            seat.hold(now.plusMinutes(30));
+		for (int i = 0; i < heldSeats.size(); i++) {
+			PerformanceSeat seat = heldSeats.get(i);
 
-            details.add(new OrdersDetail(
-                    seat,
-                    savedOrder,
-                    OrdersDetailStatus.PENDING,
-                    prices.get(i)
-            ));
-        }
+			// 주의: seat.hold(...)를 다시 호출하지 않는다.
+			// 기존 holdToken과 holdExpiresAt을 유지한다.
 
-        performanceSeatRepository.saveAll(seats);
-        ordersDetailRepository.saveAll(details);
+			details.add(new OrdersDetail(
+					seat,
+					savedOrder,
+					OrdersDetailStatus.PENDING,
+					prices.get(i)
+					));
+		}
 
-        // 9. 결제 대기 생성
-        Payments payment = new Payments(
-                paymentMethod,
-                totalAmount,
-                savedOrder
-        );
+		ordersDetailRepository.saveAll(details);
 
-        paymentsRepository.save(payment);
+		// 9. 결제 대기 생성
+		Payments payment = new Payments(
+				paymentMethod,
+				totalAmount,
+				savedOrder
+				);
 
-        return savedOrder;
-    } // createOrder
-    
-    @Transactional
-    public void expireOrder(Long ordersId) {
+		paymentsRepository.save(payment);
 
-        List<OrdersDetail> details =
-                ordersDetailRepository.findByOrders_OrdersId(ordersId);
+		return savedOrder;
+	}
 
-        if (details.isEmpty()) {
-            throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
-        }
+	@Transactional
+	public void expireOrder(Long ordersId) {
 
-        LocalDateTime now = LocalDateTime.now();
+		List<OrdersDetail> details =
+				ordersDetailRepository.findByOrders_OrdersId(ordersId);
 
-        // 모든 좌석의 만료 여부를 먼저 확인
-        List<PerformanceSeat> seats = new ArrayList<>();
+		if (details.isEmpty()) {
+			throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
+		}
 
-        for (OrdersDetail detail : details) {
+		LocalDateTime now = LocalDateTime.now();
 
-            if (detail.getStatus() != OrdersDetailStatus.PENDING) {
-                throw new IllegalStateException(
-                        "만료 처리할 수 없는 주문 상세 상태입니다.");
-            }
+		// 모든 좌석의 만료 여부를 먼저 확인
+		List<PerformanceSeat> seats = new ArrayList<>();
 
-            PerformanceSeat seat = performanceSeatRepository
-                    .findByIdForUpdate(
-                            detail.getPerformanceSeat().getPerformanceSeatId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
+		for (OrdersDetail detail : details) {
 
-            if (!"HELD".equals(seat.getStatus())
-                    || seat.getHoldExpiresAt() == null
-                    || seat.getHoldExpiresAt().isAfter(now)) {
-                throw new IllegalStateException(
-                        "아직 만료되지 않았거나 점유 상태가 올바르지 않습니다.");
-            }
+			if (detail.getStatus() != OrdersDetailStatus.PENDING) {
+				throw new IllegalStateException(
+						"만료 처리할 수 없는 주문 상세 상태입니다.");
+			}
 
-            seats.add(seat);
-        }
+			PerformanceSeat seat = performanceSeatRepository
+					.findByIdForUpdate(
+							detail.getPerformanceSeat().getPerformanceSeatId())
+					.orElseThrow(() ->
+					new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
 
-        // 검증이 모두 끝난 뒤 일괄 만료
-        for (int i = 0; i < details.size(); i++) {
-            seats.get(i).release();
-            details.get(i).expire();
-        }
+			if (!"HELD".equals(seat.getStatus())
+					|| seat.getHoldExpiresAt() == null
+					|| seat.getHoldExpiresAt().isAfter(now)) {
+				throw new IllegalStateException(
+						"아직 만료되지 않았거나 점유 상태가 올바르지 않습니다.");
+			}
 
-        performanceSeatRepository.saveAll(seats);
-        ordersDetailRepository.saveAll(details);
-    } // expireOrder
-    
-    @Transactional
-    public void cancelOrder(Long ordersId) {
+			seats.add(seat);
+		}
 
-        List<OrdersDetail> details =
-                ordersDetailRepository.findByOrders_OrdersId(ordersId);
+		// 검증이 모두 끝난 뒤 일괄 만료
+		for (int i = 0; i < details.size(); i++) {
+			seats.get(i).release();
+			details.get(i).expire();
+		}
 
-        if (details.isEmpty()) {
-            throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
-        }
+		performanceSeatRepository.saveAll(seats);
+		ordersDetailRepository.saveAll(details);
+	} // expireOrder
 
-        // 1. 결제 성공 여부 확인
-        List<Payments> payments =
-                paymentsRepository.findByOrders_OrdersId(ordersId);
+	@Transactional
+	public void cancelOrder(Long ordersId) {
 
-        boolean hasSuccessfulPayment = payments.stream()
-                .anyMatch(payment ->
-                        payment.getStatus() == PaymentStatus.SUCCESS);
+		List<OrdersDetail> details =
+				ordersDetailRepository.findByOrders_OrdersId(ordersId);
 
-        if (hasSuccessfulPayment) {
-            throw new IllegalStateException(
-                    "결제가 완료된 주문은 환불 절차를 통해 취소해야 합니다.");
-        }
+		if (details.isEmpty()) {
+			throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
+		}
 
-        // 2. 주문 상세 상태 확인
-        for (OrdersDetail detail : details) {
-            if (detail.getStatus() != OrdersDetailStatus.PENDING) {
-                throw new IllegalStateException(
-                        "취소할 수 없는 주문 상세 상태입니다.");
-            }
-        }
+		// 1. 결제 성공 여부 확인
+		List<Payments> payments =
+				paymentsRepository.findByOrders_OrdersId(ordersId);
 
-        // 3. 좌석을 잠그고 상태 확인
-        List<PerformanceSeat> seats = new ArrayList<>();
+		boolean hasSuccessfulPayment = payments.stream()
+				.anyMatch(payment ->
+				payment.getStatus() == PaymentStatus.SUCCESS);
 
-        for (OrdersDetail detail : details) {
-            PerformanceSeat seat = performanceSeatRepository
-                    .findByIdForUpdate(
-                            detail.getPerformanceSeat().getPerformanceSeatId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
+		if (hasSuccessfulPayment) {
+			throw new IllegalStateException(
+					"결제가 완료된 주문은 환불 절차를 통해 취소해야 합니다.");
+		}
 
-            if (!"HELD".equals(seat.getStatus())) {
-                throw new IllegalStateException(
-                        "결제 대기 상태가 아닌 좌석은 취소 처리할 수 없습니다.");
-            }
+		// 2. 주문 상세 상태 확인
+		for (OrdersDetail detail : details) {
+			if (detail.getStatus() != OrdersDetailStatus.PENDING) {
+				throw new IllegalStateException(
+						"취소할 수 없는 주문 상세 상태입니다.");
+			}
+		}
 
-            seats.add(seat);
-        }
+		// 3. 좌석을 잠그고 상태 확인
+		List<PerformanceSeat> seats = new ArrayList<>();
 
-        // 4. 좌석 해제 및 주문 상세 취소
-        for (int i = 0; i < details.size(); i++) {
-            seats.get(i).release();
-            details.get(i).cancel();
-        }
+		for (OrdersDetail detail : details) {
+			PerformanceSeat seat = performanceSeatRepository
+					.findByIdForUpdate(
+							detail.getPerformanceSeat().getPerformanceSeatId())
+					.orElseThrow(() ->
+					new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
 
-        performanceSeatRepository.saveAll(seats);
-        ordersDetailRepository.saveAll(details);
-    } // cancelOrder
-    
-    public OrdersResponseDTO getOrderByOrderNo(String orderNo) {
-    	Orders orders = ordersRepository.findByOrderNo(orderNo)
-    									.orElseThrow( () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
-    	
-    	return new OrdersResponseDTO(orders);
-    }
-    
-    public List<OrdersResponseDTO> getOrdersByMemberId(Long memberId){
-    	return ordersRepository.findByMember_MemberIdOrderByOrdersIdDesc(memberId)
-    							.stream()
-    							.map(OrdersResponseDTO::new)
-    							.toList();
-    }
-    
-    public List<OrdersDetailResponseDTO> getOrderDetails(Long ordersId){
-    	
-    	if (!ordersRepository.existsById(ordersId)) {
+			if (!"HELD".equals(seat.getStatus())) {
+				throw new IllegalStateException(
+						"결제 대기 상태가 아닌 좌석은 취소 처리할 수 없습니다.");
+			}
+
+			seats.add(seat);
+		}
+
+		// 4. 좌석 해제 및 주문 상세 취소
+		for (int i = 0; i < details.size(); i++) {
+			seats.get(i).release();
+			details.get(i).cancel();
+		}
+
+		performanceSeatRepository.saveAll(seats);
+		ordersDetailRepository.saveAll(details);
+	} // cancelOrder
+
+	public OrdersResponseDTO getOrderByOrderNo(String orderNo, Long memberId) {
+		Orders orders = ordersRepository.findByOrderNo(orderNo)
+				.orElseThrow( () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
+
+		if(!Objects.equals(orders.getMember().getMemberId(), memberId)) {
 			throw new IllegalArgumentException("주문 정보를 찾을 수 없습니다.");
 		}
-    	
-    	return ordersDetailRepository.findByOrders_OrdersId(ordersId)
-    								 .stream()
-    								 .map(OrdersDetailResponseDTO::new)
-    								 .toList();
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+		return new OrdersResponseDTO(orders);
+	}
+
+	public List<OrdersResponseDTO> getOrdersByMemberId(Long memberId){
+		return ordersRepository.findByMember_MemberIdOrderByOrdersIdDesc(memberId)
+				.stream()
+				.map(OrdersResponseDTO::new)
+				.toList();
+	}
+
+	public List<OrdersDetailResponseDTO> getOrderDetails(Long ordersId, Long memberId){
+
+		Orders orders = ordersRepository.findById(ordersId)
+				.orElseThrow( () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.") ); 
+
+		if (!Objects.equals(orders.getMember().getMemberId(), memberId)) {
+			throw new IllegalArgumentException("주문 정보를 찾을 수 없습니다.");
+		}
+
+		return ordersDetailRepository.findByOrders_OrdersId(ordersId)
+				.stream()
+				.map(OrdersDetailResponseDTO::new)
+				.toList();
+	}
+
 } // OrderService
