@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.doit.sistticket.category.entity.Performances;
 
-// Performance import는 팀원의 실제 패키지 경로로 수정
-
 @Getter
 @Entity
 @Table(
@@ -27,12 +25,10 @@ public class PerformanceSeat {
     @Column(name = "performance_seat_id")
     private Long performanceSeatId;
 
-    // 공연 회차 N:1
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performance_id", nullable = false)
     private Performances performance;
 
-    // 좌석 N:1
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id", nullable = false)
     private Seat seat;
@@ -42,4 +38,43 @@ public class PerformanceSeat {
 
     @Column(name = "hold_expires_at")
     private LocalDateTime holdExpiresAt;
+
+    @Column(name = "hold_token", length = 36)
+    private String holdToken;
+
+    // 지금 선점할 수 있는 좌석인지 확인
+    public boolean canHold(LocalDateTime now) {
+
+        if ("AVAILABLE".equals(status)) {
+            return true;
+        }
+
+        return "HELD".equals(status)
+                && holdExpiresAt != null
+                && !holdExpiresAt.isAfter(now);
+    }
+
+    // 좌석 선점
+    public void hold(String holdToken, LocalDateTime holdExpiresAt) {
+        this.status = "HELD";
+        this.holdToken = holdToken;
+        this.holdExpiresAt = holdExpiresAt;
+    }
+
+    // 이 토큰으로 아직 확정할 수 있는지 확인
+    public boolean canConfirm(String token, LocalDateTime now) {
+        return "HELD".equals(status)
+                && holdToken != null
+                && holdToken.equals(token)
+                && holdExpiresAt != null
+                && holdExpiresAt.isAfter(now);
+    }
+
+    // 결제 승인 후 좌석 확정
+    public void confirm() {
+        status = "RESERVED";
+        holdToken = null;
+        holdExpiresAt = null;
+    }
+
 }

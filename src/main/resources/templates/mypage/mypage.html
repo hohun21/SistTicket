@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>SistTicket | 마이페이지</title>
+    <style>
+        body {
+            background: #11131a;
+            color: #f4f4f6;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 100px 40px 40px 40px; 
+            display: flex;
+            justify-content: center;
+        }
+
+        /* --- 상단 네비게이션 헤더 바 --- */
+        header {
+            width: 100%;
+            background: #1b1d26;
+            padding: 15px 40px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30323d;
+            position: fixed;
+            top: 0; 
+            left: 0;
+            z-index: 500;
+        }
+        .header-logo {
+            color: #e8b86d;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        .header-home-btn {
+            color: #f4f4f6;
+            text-decoration: none;
+            font-size: 14px;
+            background: #30323d;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .header-home-btn:hover {
+            background: #4a4d5e;
+        }
+
+        /* --- 마이페이지 2단 레이아웃 --- */
+        .mypage-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            gap: 40px;
+        }
+
+        /* 1. 좌측 사이드바 메뉴 */
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+        }
+        .sidebar h2 {
+            color: #f4f4f6;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #30323d;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+        .sidebar-menu a {
+            display: block;
+            color: #999cab;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .sidebar-menu a:hover {
+            background: #1b1d26;
+            color: #f4f4f6;
+        }
+        .sidebar-menu a.active {
+            background: #1b1d26;
+            color: #e8b86d;
+            border: 1px solid #30323d;
+        }
+        .sidebar-menu a.danger {
+            color: #ff6b6b;
+            margin-top: 20px;
+        }
+        .sidebar-menu a.danger:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        /* 2. 우측 메인 콘텐츠 */
+        .mypage-content {
+            flex-grow: 1;
+        }
+        .mypage-content h1 {
+            color: #e8b86d;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 22px;
+        }
+        .subtitle {
+            color: #999cab;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* 티켓 카드 스타일 */
+        .ticket-card {
+            background: #1b1d26;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid #30323d;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticket-info h3 {
+            margin: 0 0 8px 0;
+            color: #f4f4f6;
+            font-size: 18px;
+        }
+        .ticket-info p {
+            margin: 4px 0;
+            color: #999cab;
+            font-size: 13px;
+        }
+        .ticket-action {
+            text-align: right;
+        }
+        .price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e8b86d;
+            margin-bottom: 12px;
+        }
+        .review-btn {
+            background: #e8b86d;
+            color: #11131a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .review-btn:hover {
+            background: #f5c87d;
+        }
+
+        /* 빈 상태 스타일 */
+        .empty-state {
+            background: #1b1d26;
+            padding: 50px 20px;
+            border-radius: 16px;
+            border: 1px dashed #30323d;
+            text-align: center;
+            color: #999cab;
+            font-size: 15px;
+        }
+
+        /* --- 리뷰 작성 모달 스타일 --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1b1d26;
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid #30323d;
+            width: 100%;
+            max-width: 480px;
+            color: #f4f4f6;
+        }
+        .modal-content h2 {
+            color: #e8b86d;
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .star-rating {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .star {
+            color: #4a4d5e;
+            transition: color 0.2s;
+        }
+        .star.active {
+            color: #e8b86d;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            height: 100px;
+            background: #11131a;
+            border: 1px solid #30323d;
+            border-radius: 8px;
+            color: #f4f4f6;
+            padding: 12px;
+            box-sizing: border-box;
+            resize: none;
+            margin-bottom: 16px;
+            font-family: Arial, sans-serif;
+        }
+
+        .file-upload-box {
+            margin-bottom: 20px;
+        }
+        .file-upload-box label {
+            display: block;
+            font-size: 13px;
+            color: #999cab;
+            margin-bottom: 6px;
+        }
+        .file-upload-box input[type="file"] {
+            width: 100%;
+            background: #11131a;
+            border: 1px solid #30323d;
+            border-radius: 8px;
+            color: #999cab;
+            padding: 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-cancel {
+            background: #30323d;
+            color: #999cab;
+        }
+        .btn-submit {
+            background: #e8b86d;
+            color: #11131a;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a th:href="@{/}" class="header-logo">SistTicket</a>
+        <a th:href="@{/}" class="header-home-btn">메인으로 돌아가기</a>
+    </header>
+
+    <div class="mypage-wrapper">
+        <aside class="sidebar">
+            <h2>마이페이지</h2>
+            <ul class="sidebar-menu">
+                <li><a th:href="@{/mypage}" class="active">나의 예매 내역</a></li>
+                <li><a th:href="@{/mypage/myreviews}">내가 쓴 리뷰</a></li>
+                <li><a th:href="@{/mypage/edit}">회원 정보 수정</a></li>
+                <li><a th:href="@{/mypage/withdraw}" class="danger">회원 탈퇴</a></li>
+            </ul>
+        </aside>
+
+        <main class="mypage-content">
+            <h1><span sec:authentication="principal.member.name"></span>님의 예매 내역</h1>
+            <p class="subtitle">내가 예매한 티켓 내역을 확인하고 리뷰를 작성할 수 있습니다.</p>
+     
+            <!-- <div class="ticket-card" th:each="ticket : ${ticketList}">
+                <div class="ticket-info">
+                    <h3 th:text="${ticket.performanceTitle}">공연 제목</h3>
+                    <p>주문 번호: <span th:text="${ticket.orderNo}">ORDER-000</span></p>
+                    <p>예매 일시: <span th:text="${#temporals.format(ticket.createdAt, 'yyyy-MM-dd HH:mm')}">2026-00-00</span></p>
+                    <p>상태: <span th:text="${ticket.status}">결제완료</span></p>
+                </div>
+                <div class="ticket-action">
+                    <div class="price" th:text="${ticket.price} + '원'">0원</div>
+                    <button class="review-btn" th:onclick="'openReviewModal(' + ${ticket.orderDetailId} + ')'">리뷰 작성하기</button>
+                </div>
+            </div>
+
+            <div class="empty-state" th:if="${ticketList == null || ticketList.isEmpty()}">
+                <p>현재 예매한 티켓 내역이 없습니다.<br>새로운 공연을 둘러보세요!</p>
+            </div> -->
+           
+            <!-- [테스트용 가짜 티켓] DB 연동 전 S3 업로드 테스트를 위한 카드 -->
+            <div class="ticket-card">
+                <div class="ticket-info">
+                    <h3 style="color: #ff6b6b;">[테스트용] S3 업로드 테스트 티켓</h3>
+                    <p>주문 번호: <span>ORDER-TEST-999</span></p>
+                    <p>예매 일시: <span>2026-10-19 15:00</span></p>
+                    <p>상태: <span>결제완료</span></p>
+                </div>
+                <div class="ticket-action">
+                    <div class="price">0원</div>
+                    <button class="review-btn" onclick="openReviewModal(999)">테스트 리뷰 쓰기</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal-content">
+            <h2>공연 리뷰 작성</h2>
+            <form id="reviewForm" onsubmit="submitReview(event)" enctype="multipart/form-data">
+                <input type="hidden" id="modalOrderDetailId" name="orderDetailId">
+                
+                <div class="star-rating" id="starContainer">
+                    <span class="star" onclick="setRating(1)">★</span>
+                    <span class="star" onclick="setRating(2)">★</span>
+                    <span class="star" onclick="setRating(3)">★</span>
+                    <span class="star" onclick="setRating(4)">★</span>
+                    <span class="star" onclick="setRating(5)">★</span>
+                </div>
+                <input type="hidden" id="ratingValue" name="rating" value="5">
+
+                <textarea id="reviewContent" name="text" placeholder="공연은 어떠셨나요? 솔직한 후기를 남겨주세요." required></textarea>
+
+                <div class="file-upload-box">
+                    <label for="reviewImage">관람 인증 사진 첨부</label>
+                    <input type="file" id="reviewImage" name="imageFile" accept="image/*">
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn btn-cancel" onclick="closeReviewModal()">취소</button>
+                    <button type="submit" class="modal-btn btn-submit">등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentRating = 5;
+
+        function openReviewModal(orderDetailId) {
+            document.getElementById('modalOrderDetailId').value = orderDetailId;
+            setRating(5);
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+            document.getElementById('reviewContent').value = '';
+            document.getElementById('reviewImage').value = '';
+        }
+
+        function setRating(score) {
+            currentRating = score;
+            document.getElementById('ratingValue').value = score;
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < score) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function submitReview(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('reviewForm');
+            const formData = new FormData(form);
+
+            fetch('/mypage/review', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("리뷰가 성공적으로 등록되었습니다!");
+                    location.reload();
+                } else {
+                    alert("리뷰 등록에 실패했습니다.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("통신 중 오류가 발생했습니다.");
+            });
+
+            closeReviewModal();
+        }
+    </script>
+</body>
+</html>
