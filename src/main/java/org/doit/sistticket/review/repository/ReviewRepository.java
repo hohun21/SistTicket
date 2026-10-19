@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReviewRepository extends JpaRepository<Reviews, Long>{
 	
-	List<Reviews> findByConcertId(Long concertId);
+	List<Reviews> findByConcert_ConcertId(Long concertId);
 	
-	List<Reviews> findByMemberId(Long memberId);
+	List<Reviews> findByMember_MemberId(Long memberId);
 	
 }

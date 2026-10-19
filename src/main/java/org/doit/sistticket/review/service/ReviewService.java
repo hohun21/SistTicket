@@ -6,10 +6,13 @@ import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.member.entity.Members;
 import org.doit.sistticket.review.dto.ReviewDTO;
 import org.doit.sistticket.review.entity.Reviews;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ReviewService {
 	
 	Long register (ReviewDTO reviewDTO);
+	
+	Long registerWithImage(ReviewDTO reviewDTO, MultipartFile imageFile);
 	
 	List<ReviewDTO> getReviewsByConcertId(Long concertId);
 	
