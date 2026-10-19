@@ -37,7 +37,7 @@ public class Venue {
 	@Column(name = "detail_address")
 	private String detailAddress;
 	
-	@Column(name = "capacity", nullable=false)
+	@Column(name = "capacity")
 	private long capacity;
 	
 	

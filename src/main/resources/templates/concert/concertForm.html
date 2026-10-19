@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${concert != null} ? '콘서트 수정' : '콘서트 등록'">콘서트 폼</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; margin-bottom: 25px; color: #333; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #495057; }
+        input[type="text"], input[type="number"], input[type="datetime-local"], select {
+            width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box;
+        }
+        .img-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 th:text="${concert != null} ? '콘서트 정보 수정' : '신규 콘서트 등록'">콘서트 폼</h1>
+
+    <!-- 수정 모드일 때 사용할 콘서트 ID 보유 -->
+    <input type="hidden" id="concertId" th:value="${concert != null} ?${concert.concertId} : ''">
+
+    <div class="form-group">
+        <label>콘서트명</label>
+        <input type="text" id="concertName" th:value="${concert != null} ?${concert.concertName} : ''" placeholder="콘서트 이름을 입력하세요">
+    </div>
+
+    <div class="form-group">
+        <label>시작 일시</label>
+        <input type="datetime-local" id="startDate" th:value="${concert != null} ?${#temporals.format(concert.startDate, 'yyyy-MM-dd''T''HH:mm')} : ''">
+    </div>
+
+    <div class="form-group">
+        <label>종료 일시</label>
+        <input type="datetime-local" id="endDate" th:value="${concert != null} ?${#temporals.format(concert.endDate, 'yyyy-MM-dd''T''HH:mm')} : ''">
+    </div>
+
+    <div class="form-group">
+        <label>장소 선택</label>
+        <select id="venueId">
+            <option value="">장소를 선택하세요</option>
+            <th:block th:each="venue : ${venues}">
+                <option th:value="${venue.venueId}" 
+                        th:text="${venue.venueName}"
+                        th:selected="${concert != null and concert.venue != null and concert.venue.venueId == venue.venueId}">
+                </option>
+            </th:block>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>장르 선택</label>
+        <select id="genreId">
+            <option value="">장르를 선택하세요</option>
+            <th:block th:each="genre : ${genres}">
+                <option th:value="${genre.genreId}" 
+                        th:text="${genre.genreName}"
+                        th:selected="${concert != null and concert.genre != null and concert.genre.genreId == genre.genreId}">
+                </option>
+            </th:block>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>러닝타임 (분 단위)</label>
+        <input type="number" id="runTimeMinutes" th:value="${concert != null and concert.runTime != null} ?${concert.runTime.toMinutes()} : ''" placeholder="예: 120">
+    </div>
+
+    <div class="form-group">
+        <label>대표 썸네일 URL</label>
+        <input type="text" id="thumbnailUrl" th:value="${concert != null} ?${concert.thumbnailUrl} : ''" placeholder="https://example.com/thumb.jpg">
+    </div>
+
+    <div class="form-group">
+        <label>상세 이미지 URLs</label>
+        <div id="detailImgContainer">
+            <!-- 기존 상세 이미지가 존재하는 경우 (수정 모드) -->
+            <th:block th:if="${concert != null and concert.detailImgUrls != null and !concert.detailImgUrls.isEmpty()}">
+                <div class="img-input-group" th:each="imgUrl : ${concert.detailImgUrls}">
+                    <input type="text" class="detailImgInput" th:value="${imgUrl}">
+                    <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">삭제</button>
+                </div>
+            </th:block>
+
+            <!-- 등록 모드이거나 기존 상세 이미지가 없는 경우 -->
+            <th:block th:if="${concert == null or concert.detailImgUrls == null or concert.detailImgUrls.isEmpty()}">
+                <div class="img-input-group">
+                    <input type="text" class="detailImgInput" placeholder="상세 이미지 URL 입력">
+                </div>
+            </th:block>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="addDetailImgInput()" style="margin-top: 5px;">+ 이미지 칸 추가</button>
+    </div>
+
+    <div style="margin-top: 30px; text-align: right;">
+        <button type="button" class="btn btn-primary" onclick="submitForm()" th:text="${concert != null} ? '수정 완료' : '등록 완료'">저장</button>
+    </div>
+</div>
+
+<script>
+    // 상세 이미지 입력 필드 추가
+    function addDetailImgInput() {
+        const container = document.getElementById('detailImgContainer');
+        const div = document.createElement('div');
+        div.className = 'img-input-group';
+        div.innerHTML = `
+            <input type="text" class="detailImgInput" placeholder="상세 이미지 URL 입력">
+            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">삭제</button>
+        `;
+        container.appendChild(div);
+    }
+
+    // 폼 저장 (등록/수정 공용 분기)
+    function submitForm() {
+        const concertId = document.getElementById('concertId').value;
+        const isEdit = concertId !== "";
+
+        // 상세 이미지 URL 배열 수집
+        const detailImgInputs = document.querySelectorAll('.detailImgInput');
+        const detailImgUrls = [];
+        detailImgInputs.forEach(input => {
+            if (input.value.trim() !== "") {
+                detailImgUrls.push(input.value.trim());
+            }
+        });
+
+        // 전송 데이터 생성
+        const requestData = {
+            concertName: document.getElementById('concertName').value,
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            venueId: document.getElementById('venueId').value,
+            genreId: document.getElementById('genreId').value,
+            runTimeMinutes: document.getElementById('runTimeMinutes').value,
+            thumbnailUrl: document.getElementById('thumbnailUrl').value,
+            detailImgUrls: detailImgUrls
+        };
+
+        const url = isEdit ? `/api/admin/concert/${concertId}` : '/api/admin/concert';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            if (response.ok) {
+                return isEdit ? Promise.resolve(concertId) : response.json();
+            }
+            throw new Error(isEdit ? '수정에 실패했습니다.' : '등록에 실패했습니다.');
+        })
+        .then(resultId => {
+            alert(isEdit ? '성공적으로 수정되었습니다.' : '성공적으로 등록되었습니다.');
+            window.location.href = `/concert/${resultId}`;
+        })
+        .catch(error => {
+            alert(error.message);
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.doit.sistticket.category.dto.ConcertDetailResponseDTO;
 import org.doit.sistticket.category.dto.ConcertListResponseDTO;
+import org.doit.sistticket.category.dto.ConcertRequestDTO;
 import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.PerformanceCast;
 import org.doit.sistticket.category.entity.Performances;
@@ -70,4 +71,10 @@ public interface ConcertService {
 
     // 상세 보기 (Concert ID로 회차 및 캐스팅 정보)
     ConcertDetailResponseDTO getDetail(Long concertId);
+
+	Long registerConcert(ConcertRequestDTO dto);
+
+	void updateConcert(Long concertId, ConcertRequestDTO dto);
+
+	void deleteConcert(Long concertId);
 }
