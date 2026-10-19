@@ -10,36 +10,45 @@
     <div class="container my-5">
         <h2 class="mb-4 fw-bold">🎭 전체 공연 목록</h2>
         
+        <!-- Card List  -->
         <div class="row row-cols-1 row-cols-md-3 g-4">
-            <!-- 1번 카드 -->
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <span class="badge bg-secondary mb-2">아이돌</span>
-                        <h5 class="card-title fw-bold">아이유 단독 콘서트 - The Winning [서울]</h5>
-                        <p class="card-text text-muted small mb-1">잠실 주경기장</p>
-                        <p class="card-text small">2026-11-05 ~ 2026-11-05</p>
-                    </div>
-                    <div class="card-footer bg-white border-top-0">
-                        <a href="/concert/1" class="btn btn-outline-primary w-100">상세보기 및 예매</a>
+            <th:block th:if="${concertList != null and !concertList.isEmpty()}">
+                <div class="col" th:each="concert : ${concertList}">
+                    <div class="card h-100 shadow-sm">
+                        <!-- 썸네일 이미지 출력 영역 -->
+                        <img th:src="${concert.imgUrl}" class="card-img-top" alt="공연 포스터" style="height: 250px; object-fit: cover;">
+                        
+                        <div class="card-body">
+                            <!-- 장르 배지 -->
+                            <span class="badge bg-secondary mb-2" th:text="${concert.genreName}">장르</span>
+                            
+                            <!-- 공연 제목 -->
+                            <h5 class="card-title fw-bold" th:text="${concert.concertName}">공연 제목</h5>
+                            
+                            <!-- 공연장 위치 -->
+                            <p class="card-text text-muted small mb-1" th:text="${concert.venueName}">공연장 이름</p>
+                            
+                            <!-- 공연 기간 -->
+                            <p class="card-text small text-secondary">
+                                <span th:text="${#temporals.format(concert.startDate, 'yyyy-MM-dd')}">시작일</span> ~ 
+                                <span th:text="${#temporals.format(concert.endDate, 'yyyy-MM-dd')}">종료일</span>
+                            </p>
+                        </div>
+                        
+                        <div class="card-footer bg-white border-top-0">
+                            <!-- 상세 보기 링크 (Concert ID) -->
+                            <a th:href="@{/concert/{id}(id=${concert.concertId})}" class="btn btn-outline-primary w-100">상세보기 및 예매</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </th:block>
 
-            <!-- 2번 카드 -->
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <span class="badge bg-secondary mb-2">뮤지컬</span>
-                        <h5 class="card-title fw-bold">뮤지컬 &lt;레미제라블&gt; [서울]</h5>
-                        <p class="card-text text-muted small mb-1">블루스퀘어 신한카드홀</p>
-                        <p class="card-text small">2026-10-01 ~ 2026-10-31</p>
-                    </div>
-                    <div class="card-footer bg-white border-top-0">
-                        <a href="/concert/2" class="btn btn-outline-primary w-100">상세보기 및 예매</a>
-                    </div>
+            <!-- 등록된 콘서트가 없을 경우 -->
+            <th:block th:if="${concertList == null or concertList.isEmpty()}">
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">현재 등록된 공연이 없습니다.</p>
                 </div>
-            </div>
+            </th:block>
         </div>
     </div>
 
