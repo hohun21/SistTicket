@@ -8,4 +8,10 @@ public interface MyPageService {
 	List<MyPageDTO> getMyTicketList (Long memberId);
 	
 	Long getConcertIdByOrderDetailId(Long orderDetailId);
+	
+	void updateMemberInfo(Long memberId, String newPhone, String newPassword);
+	
+	boolean withdrawMember(Long memberId, String password);
+	
+	boolean checkPassword(Long memberId, String password);
 }

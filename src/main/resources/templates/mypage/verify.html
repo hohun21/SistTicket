@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>비밀번호 확인 | SistTicket</title>
+    <style>
+        body {
+            background-color: #0b0c10;
+            color: #f4f4f6;
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .verify-container {
+            background: #1b1d26;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid #30323d;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        .verify-container h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .verify-container p {
+            color: #999cab;
+            font-size: 14px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #30323d;
+            background: #11131a;
+            color: #f4f4f6;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        /* JS로 에러를 띄우기 위해 display: none 처리 */
+        .error-message {
+            color: #ff4d4d;
+            font-size: 13px;
+            margin-top: 8px;
+            text-align: left;
+            display: none; 
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .submit-btn:hover {
+            background: #4338ca;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #999cab;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            color: #f4f4f6;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="verify-container">
+    <h2>비밀번호 확인</h2>
+    <p>안전한 개인정보 보호를 위해<br>비밀번호를 다시 한번 입력해 주세요.</p>
+    
+    <form onsubmit="submitVerify(event)">
+        <input type="hidden" id="target" th:value="${target}">
+        
+        <div class="input-group">
+            <input type="password" id="password" placeholder="비밀번호 입력" required autofocus>
+            
+            <div id="error-msg" class="error-message"></div>
+        </div>
+        
+        <button type="submit" class="submit-btn">확인</button>
+    </form>
+    
+    <a th:href="@{/mypage}" class="back-link">마이페이지로 돌아가기</a>
+</div>
+
+<script>
+    async function submitVerify(event) {
+        event.preventDefault(); // 새로고침 방지
+
+        const target = document.getElementById('target').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('error-msg');
+
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+
+        try {
+            const response = await fetch('/api/mypage/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: password }) // JSON 객체로 변환
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+
+                window.location.href = '/mypage/' + target;
+            } else {
+                errorMsg.innerText = result.message || '비밀번호가 일치하지 않습니다.';
+                errorMsg.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            errorMsg.innerText = '서버와 통신 중 오류가 발생했습니다.';
+            errorMsg.style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>

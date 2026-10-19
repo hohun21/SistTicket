@@ -36,4 +36,9 @@ public class CustomerUserDetails implements UserDetails {
     public String getUsername() {
         return member.getEmail();
     }
+    
+    @Override
+    public boolean isEnabled() {
+    	return this.member.getStatus() != 0;
+    }
 }

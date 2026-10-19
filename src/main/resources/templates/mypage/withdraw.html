@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 탈퇴 | SistTicket</title>
+    <style>
+        body {
+            background-color: #0b0c10;
+            color: #f4f4f6;
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .mypage-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 50px auto;
+            gap: 40px;
+            padding: 0 20px;
+        }
+        
+        /* 좌측 사이드바 스타일 */
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 12px 16px;
+            color: #999cab;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .sidebar a:hover {
+            background: #1b1d26;
+            color: #f4f4f6;
+            font-weight: bold;
+        }
+        .sidebar a.danger {
+            color: #ff4d4d;
+        }
+        .sidebar a.danger.active, .sidebar a.danger:hover {
+            background: rgba(255, 77, 77, 0.1);
+            font-weight: bold;
+        }
+
+        /* 우측 메인 콘텐츠 스타일 */
+        .content {
+            flex-grow: 1;
+            background: #1b1d26;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid #30323d;
+        }
+        .content h1 {
+            margin-top: 0;
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #ff4d4d;
+        }
+        
+        /* 경고 박스 스타일 */
+        .warning-box {
+            background: rgba(255, 77, 77, 0.05);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .warning-box h3 {
+            color: #ff4d4d;
+            margin-top: 0;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .warning-box ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #d1d5db;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* 폼 스타일 */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            color: #999cab;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #30323d;
+            background: #11131a;
+            color: #f4f4f6;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff4d4d;
+        }
+        
+        .withdraw-btn {
+            width: 100%;
+            padding: 15px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        .withdraw-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<div class="mypage-container">
+    <aside class="sidebar">
+        <h2>마이페이지</h2>
+        <ul>
+            <li><a th:href="@{/mypage}">예매 내역</a></li>
+            <li><a th:href="@{/mypage/verify(target='edit')}">회원 정보 수정</a></li>
+            <li><a th:href="@{/mypage/verify(target='withdraw')}" class="danger active">회원 탈퇴</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <h1>회원 탈퇴</h1>
+        
+        <div class="warning-box">
+            <h3>유의사항</h3>
+            <ul>
+                <li>탈퇴 시 모든 기기에서 즉시 로그아웃되며, 계정 복구가 불가능합니다.</li>
+                <li>기존에 예매하신 티켓 내역 및 작성하신 리뷰는 서비스 운영을 위해 보관됩니다.</li>
+                <li>진행 중인 예매 내역이 있을 경우 환불 처리에 불이익이 있을 수 있습니다.</li>
+            </ul>
+        </div>
+
+        <form onsubmit="submitWithdraw(event)">
+            <div class="form-group">
+                <label>본인 확인을 위해 비밀번호를 한 번 더 입력해 주세요.</label>
+                <input type="password" id="password" placeholder="비밀번호 입력" required autofocus>
+            </div>
+            
+            <button type="submit" class="withdraw-btn">안내사항을 확인하였으며, 탈퇴에 동의합니다.</button>
+        </form>
+    </main>
+</div>
+
+<script>
+    async function submitWithdraw(event) {
+        event.preventDefault(); // 새로고침 방지
+
+        if (!confirm('정말로 탈퇴하시겠습니까? 탈퇴 후에는 취소할 수 없습니다.')) {
+            return; // 취소 누르면 함수 종료
+        }
+
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/api/mypage/withdraw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: password }) // JSON 변환
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                alert(result.message);
+                window.location.href = '/?message=withdraw_success';
+            } else {
+                alert(result.message || '탈퇴 처리 중 오류가 발생했습니다.');
+                
+                if (response.status === 403) {
+                    window.location.href = '/mypage/verify?target=withdraw';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('서버와 통신 중 오류가 발생했습니다.');
+        }
+    }
+</script>
+
+</body>
+</html>
