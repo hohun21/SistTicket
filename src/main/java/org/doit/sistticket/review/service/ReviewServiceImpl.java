@@ -36,7 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	public List<ReviewDTO> getReviewsByConcertId(Long concertId) {
 		
-		List<Reviews> result = reviewRepository.findByConcertId(concertId);
+		List<Reviews> result = reviewRepository.findByConcert_ConcertId(concertId);
 		
 		return result.stream()
 						.map(entity -> entityToDto(entity))
@@ -46,7 +46,7 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	public List<ReviewDTO> getReviewsByMemberId(Long memberId) {
 		
-		List<Reviews> result = reviewRepository.findByMemberId(memberId);
+		List<Reviews> result = reviewRepository.findByMember_MemberId(memberId);
 		
 		return result.stream()
 						.map(entity -> entityToDto(entity))
