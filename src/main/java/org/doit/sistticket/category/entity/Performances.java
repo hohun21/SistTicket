@@ -1,9 +1,6 @@
 package org.doit.sistticket.category.entity;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-
-import org.doit.sistticket.venue.entity.Venue;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,20 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-@Getter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+
 @Entity
+@Table(name = "performances")
+@Getter
 @Setter
-@Table(name="performances")
 public class Performances {
 	
 	@Id

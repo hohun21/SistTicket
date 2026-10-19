@@ -31,8 +31,9 @@ public class SecurityConfig {
                         "/images/**",
                         "/js/**",
                         "/resources/**",
-                        "/favicon.ico").permitAll()
-
+                        "/favicon.ico",
+                        "/api/reviews/**"
+                        ).permitAll()
                 .anyRequest().authenticated())
                 // 2. 로그인 페이지 설정, 성공 시 url, 로그인 페이지 권한
                 .formLogin(form -> form
@@ -50,7 +51,7 @@ public class SecurityConfig {
 
                             if (isAdmin) {
                                 System.out.println("관리자 분기 실행");
-                                res.sendRedirect("http://localhost:5173");
+                                res.sendRedirect("http://localhost:5173/admin");
                                 return;
                             }
 
