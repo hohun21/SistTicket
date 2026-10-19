@@ -20,11 +20,11 @@ public class MemberController {
         return "member/login";
     }
 
-
     @GetMapping("/signup")
     public String signup(){
         return "member/signup";
     }
+    
     @PostMapping("/signup")
     public String signup(MemberDTO memberdto){
         this.memberservice.signup(memberdto);
