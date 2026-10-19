@@ -32,8 +32,8 @@ public class SecurityConfig {
                         "/js/**",
                         "/resources/**",
                         "/favicon.ico",
-                        "/api/reviews/**",
-                        "/mypage").permitAll()
+                        "/api/reviews/**"
+                        ).permitAll()
                 .anyRequest().authenticated())
                 // 2. 로그인 페이지 설정, 성공 시 url, 로그인 페이지 권한
                 .formLogin(form -> form

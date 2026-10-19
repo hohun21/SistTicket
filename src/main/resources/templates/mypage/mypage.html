@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>SistTicket | 마이페이지</title>
@@ -9,23 +10,120 @@
             color: #f4f4f6;
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 40px;
+            padding: 100px 40px 40px 40px; 
             display: flex;
             justify-content: center;
         }
-        .mypage-container {
+
+        /* --- 상단 네비게이션 헤더 바 --- */
+        header {
             width: 100%;
-            max-width: 900px;
+            background: #1b1d26;
+            padding: 15px 40px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30323d;
+            position: fixed;
+            top: 0; 
+            left: 0;
+            z-index: 500;
         }
-        h1 {
+        .header-logo {
             color: #e8b86d;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        .header-home-btn {
+            color: #f4f4f6;
+            text-decoration: none;
+            font-size: 14px;
+            background: #30323d;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .header-home-btn:hover {
+            background: #4a4d5e;
+        }
+
+        /* --- 마이페이지 2단 레이아웃 --- */
+        .mypage-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            gap: 40px;
+        }
+
+        /* 1. 좌측 사이드바 메뉴 */
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+        }
+        .sidebar h2 {
+            color: #f4f4f6;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #30323d;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-menu li {
             margin-bottom: 8px;
+        }
+        .sidebar-menu a {
+            display: block;
+            color: #999cab;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .sidebar-menu a:hover {
+            background: #1b1d26;
+            color: #f4f4f6;
+        }
+        .sidebar-menu a.active {
+            background: #1b1d26;
+            color: #e8b86d;
+            border: 1px solid #30323d;
+        }
+        .sidebar-menu a.danger {
+            color: #ff6b6b;
+            margin-top: 20px;
+        }
+        .sidebar-menu a.danger:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        /* 2. 우측 메인 콘텐츠 */
+        .mypage-content {
+            flex-grow: 1;
+        }
+        .mypage-content h1 {
+            color: #e8b86d;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 22px;
         }
         .subtitle {
             color: #999cab;
             font-size: 14px;
             margin-bottom: 30px;
         }
+
+        /* 티켓 카드 스타일 */
         .ticket-card {
             background: #1b1d26;
             padding: 24px;
@@ -68,14 +166,16 @@
         .review-btn:hover {
             background: #f5c87d;
         }
-        .test-banner {
-            background: #2a2d3d;
-            border: 1px dashed #e8b86d;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #e8b86d;
+
+        /* 빈 상태 스타일 */
+        .empty-state {
+            background: #1b1d26;
+            padding: 50px 20px;
+            border-radius: 16px;
+            border: 1px dashed #30323d;
+            text-align: center;
+            color: #999cab;
+            font-size: 15px;
         }
 
         /* --- 리뷰 작성 모달 스타일 --- */
@@ -104,7 +204,6 @@
             font-size: 20px;
         }
         
-        /* 별점 스타일 */
         .star-rating {
             display: flex;
             gap: 6px;
@@ -120,7 +219,6 @@
             color: #e8b86d;
         }
 
-        /* 텍스트 영역 스타일 */
         .modal-content textarea {
             width: 100%;
             height: 100px;
@@ -135,7 +233,6 @@
             font-family: Arial, sans-serif;
         }
 
-        /* 파일 업로드 스타일 */
         .file-upload-box {
             margin-bottom: 20px;
         }
@@ -180,39 +277,58 @@
 </head>
 <body>
 
-    <div class="mypage-container">
-        <h1>마이페이지</h1>
-        <p class="subtitle">내가 예매한 티켓 내역을 확인하고 리뷰를 작성할 수 있습니다.</p>
+    <header>
+        <a th:href="@{/}" class="header-logo">SistTicket</a>
+        <a th:href="@{/}" class="header-home-btn">메인으로 돌아가기</a>
+    </header>
 
-        <div class="test-banner">
-            💡 [UI 테스트 모드] 버튼과 모달창 테스트를 위해 임시 카드를 띄워두었습니다!
-        </div>
+    <div class="mypage-wrapper">
+        <aside class="sidebar">
+            <h2>마이페이지</h2>
+            <ul class="sidebar-menu">
+                <li><a th:href="@{/mypage}" class="active">나의 예매 내역</a></li>
+                <li><a th:href="@{/mypage/myreviews}">내가 쓴 리뷰</a></li>
+                <li><a th:href="@{/mypage/edit}">회원 정보 수정</a></li>
+                <li><a th:href="@{/mypage/withdraw}" class="danger">회원 탈퇴</a></li>
+            </ul>
+        </aside>
 
-        <div class="ticket-card" th:each="ticket : ${ticketList}">
-            <div class="ticket-info">
-                <h3 th:text="${ticket.performanceTitle}">공연 제목</h3>
-                <p>주문 번호: <span th:text="${ticket.orderNo}">ORDER-000</span></p>
-                <p>예매 일시: <span th:text="${#temporals.format(ticket.createdAt, 'yyyy-MM-dd HH:mm')}">2026-00-00</span></p>
-                <p>상태: <span th:text="${ticket.status}">결제완료</span></p>
+        <main class="mypage-content">
+            <h1><span sec:authentication="principal.member.name"></span>님의 예매 내역</h1>
+            <p class="subtitle">내가 예매한 티켓 내역을 확인하고 리뷰를 작성할 수 있습니다.</p>
+     
+            <!-- <div class="ticket-card" th:each="ticket : ${ticketList}">
+                <div class="ticket-info">
+                    <h3 th:text="${ticket.performanceTitle}">공연 제목</h3>
+                    <p>주문 번호: <span th:text="${ticket.orderNo}">ORDER-000</span></p>
+                    <p>예매 일시: <span th:text="${#temporals.format(ticket.createdAt, 'yyyy-MM-dd HH:mm')}">2026-00-00</span></p>
+                    <p>상태: <span th:text="${ticket.status}">결제완료</span></p>
+                </div>
+                <div class="ticket-action">
+                    <div class="price" th:text="${ticket.price} + '원'">0원</div>
+                    <button class="review-btn" th:onclick="'openReviewModal(' + ${ticket.orderDetailId} + ')'">리뷰 작성하기</button>
+                </div>
             </div>
-            <div class="ticket-action">
-                <div class="price" th:text="${ticket.price} + '원'">0원</div>
-                <button class="review-btn" th:onclick="'openReviewModal(' + ${ticket.orderDetailId} + ')'">리뷰 작성하기</button>
-            </div>
-        </div>
 
-        <div class="ticket-card" th:if="${ticketList == null || ticketList.isEmpty()}">
-            <div class="ticket-info">
-                <h3>아이유 단독 콘서트 - The Winning [서울]</h3>
-                <p>주문 번호: <span>ORDER-20261018-TEST</span></p>
-                <p>예매 일시: <span>2026-10-18 17:00</span></p>
-                <p>상태: <span>결제완료</span></p>
+            <div class="empty-state" th:if="${ticketList == null || ticketList.isEmpty()}">
+                <p>현재 예매한 티켓 내역이 없습니다.<br>새로운 공연을 둘러보세요!</p>
+            </div> -->
+           
+            <!-- [테스트용 가짜 티켓] DB 연동 전 S3 업로드 테스트를 위한 카드 -->
+            <div class="ticket-card">
+                <div class="ticket-info">
+                    <h3 style="color: #ff6b6b;">[테스트용] S3 업로드 테스트 티켓</h3>
+                    <p>주문 번호: <span>ORDER-TEST-999</span></p>
+                    <p>예매 일시: <span>2026-10-19 15:00</span></p>
+                    <p>상태: <span>결제완료</span></p>
+                </div>
+                <div class="ticket-action">
+                    <div class="price">0원</div>
+                    <button class="review-btn" onclick="openReviewModal(999)">테스트 리뷰 쓰기</button>
+                </div>
             </div>
-            <div class="ticket-action">
-                <div class="price">50,000원</div>
-                <button class="review-btn" onclick="openReviewModal(999)">리뷰 작성하기</button>
-            </div>
-        </div>
+
+        </main>
     </div>
 
     <div class="modal-overlay" id="reviewModal">
@@ -299,6 +415,5 @@
             closeReviewModal();
         }
     </script>
-
 </body>
 </html>
