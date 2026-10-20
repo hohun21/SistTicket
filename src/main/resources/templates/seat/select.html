@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>좌석 선택 | SIST TICKET</title>
+  <link rel="stylesheet" href="/css/seat/select.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">HOON HOme</a>
+    <div class="header-right">
+      <span>다음 순간을 위한 좌석을 선택하세요</span>
+      <a class="header-link" href="/">홈으로</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <span class="eyebrow">SIST TICKET · SEAT SELECTION</span>
+    <h1 class="page-title">좌석 선택</h1>
+    <p class="subtitle">원하는 좌석을 선택하세요. 선점 후 결제 준비를 이어갈 수 있습니다.</p>
+
+    <section class="performance-info" aria-label="공연 정보">
+      <div>
+        <small id="modeNote">공연 정보를 불러오는 중입니다</small>
+        <h2 id="performanceName">공연 회차</h2>
+        <p id="performanceMeta"></p>
+      </div>
+      <span class="performance-badge" id="performanceBadge">좌석 선택</span>
+    </section>
+
+    <div class="layout">
+      <section class="panel map-panel" aria-labelledby="mapTitle">
+        <div class="panel-heading">
+          <div>
+            <h2 id="mapTitle">공연장 좌석도</h2>
+            <p id="mapDescription">좌석 정보를 불러오는 중입니다.</p>
+          </div>
+          <button class="refresh" id="refreshButton" type="button">새로고침</button>
+        </div>
+
+        <div class="venue-stage" aria-label="무대">
+          <span>STAGE · 무대</span>
+        </div>
+
+        <div class="seat-map" id="seatMap" aria-live="polite"></div>
+
+        <div class="legend">
+          <span class="legend-label">좌석 등급</span>
+          <span class="legend-item"><i class="swatch grade-s"></i>S석 · 200,000원</span>
+          <span class="legend-item"><i class="swatch grade-a"></i>A석 · 150,000원</span>
+          <span class="legend-item"><i class="swatch grade-r"></i>R석 · 130,000원</span>
+
+          <span class="legend-label">선택 상태</span>
+          <span class="legend-item"><i class="swatch selected"></i>선택 중</span>
+          <span class="legend-item"><i class="swatch held"></i>임시 선점</span>
+          <span class="legend-item"><i class="swatch reserved"></i>예매 완료</span>
+        </div>
+      </section>
+
+      <aside class="panel summary" aria-labelledby="summaryTitle">
+        <h2 id="summaryTitle">선택한 좌석</h2>
+        <p class="sub">좌석을 누르면 이곳에 표시됩니다.</p>
+        <div class="summary-list" id="selectedList"></div>
+
+        <div class="total">
+          <span>예상 결제 금액</span>
+          <strong id="totalPrice">0원</strong>
+        </div>
+
+        <button class="primary" id="holdButton" type="button" disabled>
+          좌석 선택하기
+        </button>
+        <button class="refresh" id="cancelHoldButton" type="button" hidden>
+		  임시 선점 취소
+		</button>
+        <p class="helper">가격은 화면 표시용입니다. 실제 결제 금액은 서버에서 다시 확인합니다.</p>
+        <p class="message" id="message" role="status"></p>
+      </aside>
+    </div>
+  </main>
+
+  <script src="/js/seat/select.js" defer></script>
+</body>
+</html>

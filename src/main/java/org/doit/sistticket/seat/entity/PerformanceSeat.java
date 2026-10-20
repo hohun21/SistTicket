@@ -2,13 +2,22 @@ package org.doit.sistticket.seat.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.*;
+import org.doit.sistticket.category.entity.Performances;
+import org.doit.sistticket.member.entity.Members;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.doit.sistticket.category.entity.Performances;
-
-// Performance import는 팀원의 실제 패키지 경로로 수정
 
 @Getter
 @Entity
@@ -27,12 +36,10 @@ public class PerformanceSeat {
     @Column(name = "performance_seat_id")
     private Long performanceSeatId;
 
-    // 공연 회차 N:1
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performance_id", nullable = false)
     private Performances performance;
 
-    // 좌석 N:1
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id", nullable = false)
     private Seat seat;
@@ -42,4 +49,68 @@ public class PerformanceSeat {
 
     @Column(name = "hold_expires_at")
     private LocalDateTime holdExpiresAt;
+
+    @Column(name = "hold_token", length = 36)
+    private String holdToken;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hold_member_id")
+    private Members holdMember;
+
+    // 현재 좌석을 선점할 수 있는지 확인
+    public boolean canHold(LocalDateTime now) {
+        if ("AVAILABLE".equals(status)) {
+            return true;
+        }
+
+        return "HELD".equals(status)
+                && holdExpiresAt != null
+                && !holdExpiresAt.isAfter(now);
+    }
+
+    // 기존 주문·결제 서비스 호환용 임시 선점
+    public void hold(LocalDateTime expiresAt) {
+        this.status = "HELD";
+        this.holdToken = null;
+        this.holdExpiresAt = expiresAt;
+    }
+
+    // 토큰을 이용하는 좌석 홀드 기능
+    public void hold(String holdToken, LocalDateTime expiresAt, Members member) {
+        this.status = "HELD";
+        this.holdToken = holdToken;
+        this.holdExpiresAt = expiresAt;
+        this.holdMember = member;
+    }
+
+    // 해당 토큰으로 예약 확정이 가능한지 확인
+    public boolean canConfirm(String token, LocalDateTime now) {
+        return "HELD".equals(status)
+                && holdToken != null
+                && holdToken.equals(token)
+                && holdExpiresAt != null
+                && holdExpiresAt.isAfter(now);
+    }
+
+    // 기존 주문·결제 서비스 호환용 예약 확정
+    public void reserve() {
+        this.status = "RESERVED";
+        this.holdToken = null;
+        this.holdExpiresAt = null;
+        this.holdMember = null;
+    }
+
+    // 좌석 팀원의 예약 확정 메서드
+    public void confirm() {
+        reserve();
+    }
+
+    // 좌석 반환
+    public void release() {
+        this.status = "AVAILABLE";
+        this.holdToken = null;
+        this.holdExpiresAt = null;
+        this.holdMember = null;
+    }
+    
 }

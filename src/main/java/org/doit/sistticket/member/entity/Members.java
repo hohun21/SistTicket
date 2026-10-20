@@ -1,15 +1,16 @@
 package org.doit.sistticket.member.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity(name ="members")
 @Getter @Setter
-
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Members extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +34,9 @@ public class Members extends BaseEntity {
     @CollectionTable(name="members_roles",
     joinColumns = @JoinColumn(name="members_id")
     )
+
     @Column(name="role")
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     private int status;

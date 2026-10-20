@@ -6,6 +6,22 @@
     <title>SistTicket | 로그인</title>
 
     <style>
+
+        /* ========================================
+           SistTicket - Login Theme
+           ======================================== */
+
+        :root {
+            --bg: #0b0d18;
+            --surface: #131627;
+            --surface-hover: #1b2036;
+            --primary: #e8b86d;
+            --primary-hover: #f2ca8c;
+            --text: #f5f5fa;
+            --text-muted: #9ca3b8;
+            --border: rgba(255, 255, 255, 0.09);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -17,16 +33,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #11131a;
-            color: #f4f4f6;
-            font-family: Arial, "Malgun Gothic", sans-serif;
             padding: 24px;
+
+            background:
+                    radial-gradient(
+                            ellipse at 50% 0%,
+                            rgba(232, 184, 109, 0.09),
+                            transparent 48%
+                    ),
+                    var(--bg);
+
+            color: var(--text);
+            font-family: "Pretendard", "Noto Sans KR",
+            "Malgun Gothic", sans-serif;
         }
+
+        /* 전체 컨테이너 */
 
         .login-container {
             width: 100%;
             max-width: 420px;
         }
+
+        /* 로고 */
 
         .logo {
             text-align: center;
@@ -34,26 +63,42 @@
         }
 
         .logo a {
-            color: #e8b86d;
+            display: inline-block;
+            color: var(--primary);
             font-size: 30px;
-            font-weight: 800;
-            text-decoration: none;
+            font-weight: 900;
             letter-spacing: -1px;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .logo a:hover {
+            color: var(--primary-hover);
         }
 
         .logo p {
             margin-top: 8px;
-            color: #858795;
-            font-size: 12px;
-            letter-spacing: 3px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 4px;
         }
+
+        /* 로그인 카드 */
 
         .login-card {
             padding: 36px;
-            background: #1b1d26;
-            border: 1px solid #30323d;
-            border-radius: 16px;
+
+            background: rgba(19, 22, 39, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            box-shadow:
+                    0 24px 70px rgba(0, 0, 0, 0.28),
+                    0 0 40px rgba(232, 184, 109, 0.025);
         }
+
+        /* 제목 */
 
         .heading {
             text-align: center;
@@ -61,22 +106,26 @@
         }
 
         .heading span {
-            color: #e8b86d;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 2px;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 3px;
         }
 
         .heading h1 {
             margin: 12px 0;
             font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
         }
 
         .heading p {
-            color: #999cab;
+            color: var(--text-muted);
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.8;
         }
+
+        /* 입력 폼 */
 
         .form-group {
             margin-bottom: 20px;
@@ -85,101 +134,199 @@
         .form-group label {
             display: block;
             margin-bottom: 9px;
+
+            color: #e5e7ef;
             font-size: 14px;
             font-weight: 600;
         }
 
         .form-group input {
+            display: block;
             width: 100%;
-            height: 48px;
+            height: 49px;
             padding: 0 14px;
-            border: 1px solid #3b3e4b;
-            border-radius: 8px;
-            background: #14161d;
-            color: white;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
 
-        .form-group input:focus {
-            border-color: #e8b86d;
+            border: 1px solid #30354b;
+            border-radius: 9px;
+            outline: none;
+
+            background: #0e1120;
+            color: var(--text);
+
+            font-size: 14px;
+            transition:
+                    border-color 0.2s ease,
+                    box-shadow 0.2s ease,
+                    background 0.2s ease;
         }
 
         .form-group input::placeholder {
-            color: #737687;
+            color: #737b94;
         }
+
+        .form-group input:hover {
+            border-color: #454b63;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            background: #111426;
+            box-shadow: 0 0 0 3px rgba(232, 184, 109, 0.1);
+        }
+
+        /* 로그인 버튼 */
 
         .login-button {
             width: 100%;
             height: 50px;
             margin-top: 10px;
+
             border: none;
-            border-radius: 8px;
-            background: #e8b86d;
-            color: #191919;
-            font-size: 16px;
-            font-weight: 700;
+            border-radius: 9px;
+
+            background: var(--primary);
+            color: #171717;
+
+            font-size: 15px;
+            font-weight: 800;
             cursor: pointer;
-            transition: background 0.2s;
+
+            transition:
+                    background 0.2s ease,
+                    transform 0.2s ease,
+                    box-shadow 0.2s ease;
         }
 
         .login-button:hover {
-            background: #f2ca8c;
+            background: var(--primary-hover);
+            box-shadow: 0 6px 20px rgba(232, 184, 109, 0.13);
+            transform: translateY(-1px);
         }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:focus-visible {
+            outline: 2px solid var(--primary-hover);
+            outline-offset: 4px;
+        }
+
+        /* 로그인 실패 / 로그아웃 메시지 */
 
         .error-message {
             margin-bottom: 18px;
-            padding: 12px;
-            border-radius: 8px;
-            background: #382126;
+            padding: 12px 14px;
+
+            border: 1px solid rgba(255, 100, 120, 0.15);
+            border-radius: 9px;
+
+            background: #2a1923;
             color: #ff9eaa;
+
             font-size: 13px;
+            line-height: 1.6;
         }
+
+        /* 회원가입 */
 
         .signup {
             margin-top: 26px;
             text-align: center;
-            color: #999cab;
-            font-size: 14px;
-        }
 
-        .signup a,
-        .find-links a {
-            color: #e8b86d;
-            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
         }
 
         .signup a {
-            margin-left: 6px;
-            font-weight: 600;
+            margin-left: 5px;
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.2s ease;
         }
+
+        .signup a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        /* 아이디 / 비밀번호 찾기 */
 
         .find-links {
             display: flex;
             justify-content: center;
-            gap: 12px;
+            align-items: center;
+            gap: 13px;
+
             margin-top: 22px;
             font-size: 12px;
         }
 
         .find-links a {
-            color: #a5a7b0;
+            color: #9ca3b8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .find-links a:hover {
+            color: var(--primary);
         }
 
         .find-links span {
-            color: #454754;
+            color: #454a5d;
         }
 
+        /* 키보드 접근성 */
+
+        a:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 4px;
+            border-radius: 3px;
+        }
+
+        /* 모바일 */
+
         @media (max-width: 480px) {
+            body {
+                padding: 20px 16px;
+            }
+
+            .login-container {
+                max-width: 400px;
+            }
+
+            .logo {
+                margin-bottom: 26px;
+            }
+
+            .logo a {
+                font-size: 27px;
+            }
+
             .login-card {
-                padding: 28px 22px;
+                padding: 30px 22px;
+                border-radius: 15px;
+            }
+
+            .heading {
+                margin-bottom: 28px;
             }
 
             .heading h1 {
                 font-size: 25px;
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
     </style>
 </head>
 
@@ -218,10 +365,10 @@
         <form th:action="@{/login}" method="post">
 
             <div class="form-group">
-                <label for="username">아이디</label>
+                <label for="email">아이디</label>
                 <input type="text"
-                       id="username"
-                       name="username"
+                       id="email"
+                       name="email"
                        placeholder="아이디를 입력하세요"
                        autocomplete="username"
                        required>

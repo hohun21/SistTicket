@@ -29,6 +29,7 @@ import lombok.ToString;
 @Entity
 @Setter
 @Table(name="performances")
+
 public class Performances {
 	
 	@Id

@@ -28,12 +28,12 @@ public class CustomerUserDetails implements UserDetails {
     }
 
     @Override
-    public @Nullable String getPassword() {
-        return "";
+    public String getPassword() {
+        return member.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return member.getEmail();
     }
 }
