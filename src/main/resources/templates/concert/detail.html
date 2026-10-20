@@ -23,7 +23,13 @@
                     <h2 class="fw-bold mb-3" th:text="${concert.concertName}">공연 제목</h2>
                     
                     <ul class="list-unstyled text-muted small mb-4">
-                        <li class="mb-2"><strong>장소:</strong> <span th:text="${concert.venueName}">공연장 이름</span> (<span th:text="${concert.venueAddress}">주소</span>)</li>
+                        <li class="mb-2"><strong>장소:</strong> <span th:text="${concert.venueName}">공연장 이름</span> (<span th:text="${concert.venueAddress}">주소</span>)
+							<!-- 러닝타임 출력 예시 -->
+							<p class="card-text">
+							    <strong>러닝타임:</strong> 
+							    <span th:text="${concert.runTimeMinutes != null ? concert.runTimeMinutes + '분' : '정보 없음'}">120분</span>
+							</p>
+							</li>
                         <li class="mb-2">
                             <strong>공연 기간:</strong> 
                             <span th:text="${#temporals.format(concert.startDate, 'yyyy-MM-dd')}">시작일</span> ~ 

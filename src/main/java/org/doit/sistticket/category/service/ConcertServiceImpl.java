@@ -97,7 +97,8 @@ public class ConcertServiceImpl implements ConcertService {
                     .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
                     .startDate(concert.getStartDate())
                     .endDate(concert.getEndDate())
-                    .imgUrl(imgUrl) // 💡 썸네일 URL 연결!
+                    .runTimeMinutes(concert.getRunTime() != null ? (long) concert.getRunTime().toMinutes() : 0)
+                    .imgUrl(imgUrl) // 
                     .build();
         });
 		        

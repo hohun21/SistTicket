@@ -22,4 +22,5 @@ public class ConcertListResponseDTO {
     private String genreName;
     private String venueName;
     private String imgUrl;
+    private Long runTimeMinutes; 
 }
