@@ -43,7 +43,7 @@ public class OrdersDetail {
 
     // 주문, 좌석 처리 규칙!
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private OrdersDetailStatus status;
 
     @Column(name = "price")
