@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import org.doit.sistticket.payments.enums.PaymentStatus;
 import org.doit.sistticket.payments.repository.PaymentsRepository;
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
+import org.doit.sistticket.seat.service.PerformanceSeatStatusService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +44,19 @@ public class OrdersService {
 	private final MemberRepository memberRepository;
 	private final PerformancesRepository performancesRepository;
 	private final PaymentsRepository paymentsRepository;
+	private final PerformanceSeatStatusService performanceSeatStatusService;
 
+	private String getHoldToken(List<OrdersDetail> details) {
+		List<String> tokens = details.stream().map(detail -> detail.getPerformanceSeat().getHoldToken())
+											  .distinct().toList();
+		if (tokens.size() != 1
+		        || tokens.get(0) == null
+		        || tokens.get(0).isBlank()) {
+		    throw new IllegalStateException("주문 좌석의 선점 토큰이 없거나 일치하지 않습니다.");
+		}
+		return tokens.get(0);
+	}
+	
 	@Transactional
 	public Orders createOrder(
 			Long memberId,
@@ -239,10 +253,16 @@ public class OrdersService {
 			seats.add(seat);
 		}
 
-		// 검증이 모두 끝난 뒤 일괄 만료
-		for (int i = 0; i < details.size(); i++) {
-			seats.get(i).release();
-			details.get(i).expire();
+		String holdToken = getHoldToken(details);
+		
+		boolean released = performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
+		
+		if(!released) {
+			throw new IllegalStateException("좌석 선점을 해제하지 못했습니다.");
+		}
+		
+		for(OrdersDetail detail : details) {
+			detail.expire();
 		}
 
 		performanceSeatRepository.saveAll(seats);
@@ -298,11 +318,18 @@ public class OrdersService {
 			seats.add(seat);
 		}
 
-		// 4. 좌석 해제 및 주문 상세 취소
-		for (int i = 0; i < details.size(); i++) {
-			seats.get(i).release();
-			details.get(i).cancel();
+		String holdToken = getHoldToken(details);
+		
+		boolean released = performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
+		
+		if(!released) {
+			throw new IllegalStateException("좌석 선점을 해제하지 못했습니다.");
 		}
+		
+		for(OrdersDetail detail : details) {
+			detail.cancel();
+		}
+		
 
 		performanceSeatRepository.saveAll(seats);
 		ordersDetailRepository.saveAll(details);
