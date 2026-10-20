@@ -2,17 +2,24 @@ package org.doit.sistticket.mypage.controller;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
+import org.doit.sistticket.mypage.dto.MyPageDTO;
 import org.doit.sistticket.mypage.service.MyPageService;
 import org.doit.sistticket.review.dto.ReviewDTO;
+import org.doit.sistticket.review.repository.ReviewRepository;
 import org.doit.sistticket.review.service.ReviewService;
 import org.doit.sistticket.security.CustomerUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +40,8 @@ public class MyPageApiController {
 	private final MyPageService myPageService;
 	
 	private final ReviewService reviewService;
+	
+	private final ReviewRepository reviewRepository;
 
 	// 1. 리뷰 작성
 	@PostMapping("/review")
@@ -44,18 +53,30 @@ public class MyPageApiController {
 			@RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
 
 		Long loginMemberId = userDetails.getMember().getMemberId();
+		Long concertId;
 
 		if (orderDetailId == 999L) {
-			ReviewDTO dummyDto = ReviewDTO.builder()
-					.memberId(loginMemberId).concertId(1L).rating(rating).text(text).build();
-			try { reviewService.registerWithImage(dummyDto, imageFile); } catch (Exception e) {}
-			return ResponseEntity.ok(Map.of("success", true, "message", "테스트 리뷰가 등록되었습니다."));
+			concertId = 2L;
+		} else {
+			concertId = myPageService.getConcertIdByOrderDetailId(orderDetailId);
 		}
 
-		Long concertId = myPageService.getConcertIdByOrderDetailId(orderDetailId);
+		if(reviewRepository.existsByMember_MemberIdAndConcert_ConcertId(loginMemberId, concertId)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(Map.of("success", false, "message", "이미 이 공연에 대한 리뷰를 작성하셨습니다."));
+		}
+		
 		ReviewDTO reviewDTO = ReviewDTO.builder()
-				.memberId(loginMemberId).concertId(concertId).rating(rating).text(text).build();
-		reviewService.registerWithImage(reviewDTO, imageFile);
+				.memberId(loginMemberId)
+				.concertId(concertId)
+				.rating(rating)
+				.text(text)
+				.build();
+		
+		try { 
+			reviewService.registerWithImage(reviewDTO, imageFile); 
+		} catch (Exception e) {
+		}
 
 		return ResponseEntity.ok(Map.of("success", true, "message", "리뷰가 성공적으로 등록되었습니다."));
 	}
@@ -107,7 +128,7 @@ public class MyPageApiController {
 	public ResponseEntity<?> withdrawMember(
 			@AuthenticationPrincipal CustomerUserDetails userDetails,
 			@RequestBody Map<String, String> requestData,
-			HttpServletRequest request, 
+			HttpServletRequest request,
 			HttpServletResponse response,
 			HttpSession httpSession) {
 
@@ -125,10 +146,67 @@ public class MyPageApiController {
 			if (auth != null) {
 				new SecurityContextLogoutHandler().logout(request, response, auth);
 			}
-			return ResponseEntity.ok(Map.of("success", true, "message", "탈퇴 처리가 완료되었습니다.")); 
+			return ResponseEntity.ok(Map.of("success", true, "message", "탈퇴 처리가 완료되었습니다."));
 		} else {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(Map.of("success", false, "message", "비밀번호가 일치하지 않습니다."));
 		}
 	}
+
+	@GetMapping("/user-info")
+	public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal CustomerUserDetails userDetails) {
+		if (userDetails == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(Map.of("success", false, "message", "로그인이 필요합니다."));
+		}
+
+		Map<String, Object> userInfo = new HashMap<>();
+		userInfo.put("success", true);
+		userInfo.put("name", userDetails.getMember().getName());
+		userInfo.put("email", userDetails.getMember().getEmail());
+		userInfo.put("phone", userDetails.getMember().getPhone());
+
+		return ResponseEntity.ok(userInfo);
+	}
+	
+	@GetMapping("/myreviews")
+    public ResponseEntity<?> getMyReviews(
+    		  @AuthenticationPrincipal CustomerUserDetails userDetails
+    		, @RequestParam(name = "page", defaultValue = "0") int page
+    		, @RequestParam(name = "size", defaultValue = "3") int size) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+        }
+
+        Long loginMemberId = userDetails.getMember().getMemberId();
+        
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<ReviewDTO> reviewPage = myPageService.getMyReviewList(loginMemberId, pageable);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "reviews", reviewPage.getContent(),
+                "totalPages", reviewPage.getTotalPages(),
+                "currentPage", reviewPage.getNumber()
+        ));
+    }
+	
+	@GetMapping("/tickets")
+	public ResponseEntity<?> getMyTickets(@AuthenticationPrincipal CustomerUserDetails userDetails) {
+	    if (userDetails == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+	    }
+
+	    Long loginMemberId = userDetails.getMember().getMemberId();
+	    List<MyPageDTO> ticketList = myPageService.getMyTicketList(loginMemberId);
+	    
+	    return ResponseEntity.ok(Map.of(
+	        "success", true,
+	        "tickets", ticketList
+	    ));
+	}
+	
 }

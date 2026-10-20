@@ -8,6 +8,10 @@ import org.doit.sistticket.member.repository.MemberRepository;
 import org.doit.sistticket.mypage.dto.MyPageDTO;
 import org.doit.sistticket.mypage.repository.MyPageRepository;
 import org.doit.sistticket.orders.entity.OrdersDetail;
+import org.doit.sistticket.review.dto.ReviewDTO;
+import org.doit.sistticket.review.repository.ReviewRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,23 +28,29 @@ public class MyPageServiceImpl implements MyPageService {
 	private final MemberRepository memberRepository;
 	
 	private final PasswordEncoder passwordEncoder;
+	
+	private final ReviewRepository reviewRepository;
 
 	@Override
 	public List<MyPageDTO> getMyTicketList(Long memberId) {
 		
 		List<OrdersDetail> result = myPageRepository.findByOrders_Member_MemberIdOrderByOrderDetailIdDesc(memberId);
-		
-		return result.stream().map(detail -> {
-			String concertTitle = detail.getOrders().getPerformance().getConcert().getConcertName(); 
 
-			return MyPageDTO.builder()
-					.orderDetailId(detail.getOrderDetailId())
-					.orderNo(detail.getOrders().getOrderNo())
-					.performanceTitle(concertTitle) 
-					.price(detail.getPrice())
-					.status(detail.getStatus())
-					.createdAt(detail.getCreatedAt())
-					.build();
+		return result.stream().map(detail -> {
+		    Long concertId = detail.getOrders().getPerformance().getConcert().getConcertId();
+		    String concertTitle = detail.getOrders().getPerformance().getConcert().getConcertName();
+
+		    boolean hasReviewed = reviewRepository.existsByMember_MemberIdAndConcert_ConcertId(memberId, concertId);
+
+		    return MyPageDTO.builder()
+		            .orderDetailId(detail.getOrderDetailId())
+		            .orderNo(detail.getOrders().getOrderNo())
+		            .performanceTitle(concertTitle)
+		            .price(detail.getPrice())
+		            .status(detail.getStatus())
+		            .createdAt(detail.getCreatedAt())
+		            .isReviewed(hasReviewed)
+		            .build();
 		}).collect(Collectors.toList());
 	}
 
@@ -88,6 +98,14 @@ public class MyPageServiceImpl implements MyPageService {
 		
 		return passwordEncoder.matches(password, member.getPassword());
 	}
+
+	@Override
+	public Page<ReviewDTO> getMyReviewList(Long memberId, Pageable pageable) {
+		
+		return reviewRepository.findMyReviewsWithConcertTitle(memberId, pageable);
+	}
+
+	
 	
 	
 }

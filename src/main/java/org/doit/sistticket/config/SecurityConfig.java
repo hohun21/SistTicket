@@ -22,7 +22,7 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors-> {})
+        		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 1. URL별 접근 권한
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -91,6 +91,8 @@ public class SecurityConfig {
                 List.of("http://localhost:5173")
                 ));
         config.setAllowedHeaders(List.of("*"));
+        
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
         // 세션 쿠키 사용
         config.setAllowCredentials(true);
