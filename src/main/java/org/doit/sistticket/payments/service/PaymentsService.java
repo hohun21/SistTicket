@@ -11,6 +11,7 @@ import org.doit.sistticket.payments.enums.PaymentStatus;
 import org.doit.sistticket.payments.repository.PaymentsRepository;
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
+import org.doit.sistticket.seat.service.PerformanceSeatStatusService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,24 +23,32 @@ public class PaymentsService {
 
     private final PaymentsRepository paymentsRepository;
     private final OrdersDetailRepository ordersDetailRepository;
-    private final PerformanceSeatRepository performanceSeatRepository;
+    private final PerformanceSeatStatusService performanceSeatStatusService;
 
     @Transactional
     public void completePayment(Long paymentId, String paymentKey) {
 
-        Payments payment = paymentsRepository
-                .findByIdForUpdate(paymentId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
-
-        if (payment.getStatus() != PaymentStatus.PENDING) {
-            throw new IllegalStateException("결제 대기 상태가 아닙니다.");
+    	// 1. 결제 정보 확인
+    	if (paymentId == null) {
+            throw new IllegalArgumentException("결제 ID가 없습니다.");
         }
 
         if (paymentKey == null || paymentKey.isBlank()) {
             throw new IllegalArgumentException("결제 키가 없습니다.");
         }
+        
+        Payments payment = paymentsRepository
+        		.findByIdForUpdate(paymentId)
+        		.orElseThrow(() ->
+        		new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
 
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+        	throw new IllegalStateException("결제 대기 상태가 아닙니다.");
+        }
+        
+        // 2. 주문 정보 확인
+        Long orderId = payment.getOrders().getOrdersId();
+        
         List<OrdersDetail> details =
                 ordersDetailRepository.findByOrders_OrdersId(
                         payment.getOrders().getOrdersId());
@@ -48,41 +57,17 @@ public class PaymentsService {
             throw new IllegalStateException("주문 상세 정보가 없습니다.");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        // 3. DB 상태 변경 
+        // 좌석 상태 HELD → RESERVED
+        String holdToken = performanceSeatStatusService.getHoldToken(details);
+        performanceSeatStatusService.confirmAfterPayment( orderId, holdToken );
+        
+        // 주문 상태 PENDING → CONFIRMED
+        for (OrdersDetail detail : details) { detail.confirm(); }
 
-        // 모든 좌석을 검증한 뒤 변경한다.
-        for (OrdersDetail detail : details) {
-            PerformanceSeat seat = performanceSeatRepository
-                    .findByIdForUpdate(
-                            detail.getPerformanceSeat().getPerformanceSeatId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
-
-            if (!"HELD".equals(seat.getStatus())
-                    || seat.getHoldExpiresAt() == null
-                    || !seat.getHoldExpiresAt().isAfter(now)) {
-                throw new IllegalStateException(
-                        "결제 대기가 만료되었거나 유효하지 않은 좌석입니다.");
-            }
-
-            if (detail.getStatus() != OrdersDetailStatus.PENDING) {
-                throw new IllegalStateException("주문 상세 상태가 올바르지 않습니다.");
-            }
-        }
-
-        // 좌석 확정
-        for (OrdersDetail detail : details) {
-            PerformanceSeat seat = performanceSeatRepository
-                    .findByIdForUpdate(
-                            detail.getPerformanceSeat().getPerformanceSeatId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
-
-            seat.reserve();
-            detail.confirm();
-        }
-
-        payment.completePayment(paymentKey, now);
+        // 결제 상태 PENDING → SUCCESS
+        payment.completePayment( paymentKey, LocalDateTime.now());
+        
     } // completePayment
     
     @Transactional
@@ -99,8 +84,7 @@ public class PaymentsService {
         }
 
         payment.failPayment();
-    }
-    
-    
+        
+    } // failPayment
     
 } // service

@@ -13,7 +13,7 @@ import jakarta.persistence.LockModeType;
 
 public interface PaymentsRepository extends JpaRepository<Payments, Long> {
 	
-	@Lock(LockModeType.WRITE)
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 			SELECT p
 			FROM Payments p
