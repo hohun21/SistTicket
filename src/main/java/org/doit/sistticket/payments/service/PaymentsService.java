@@ -105,4 +105,71 @@ public class PaymentsService {
         
     } // failPayment
     
+    @Transactional
+    public void retryPayment(Long paymentId) {
+    		// 1. 결제 정보를 조회해 주문ID 확인
+    		Payments paymentInfo = paymentsRepository.findById(paymentId)
+    												.orElseThrow( () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+    		
+    		Long orderId = paymentInfo.getOrders().getOrdersId();
+    		
+    		// 2. 주문 먼저 잠금
+    		Orders order = ordersRepository.findByIdForUpdate(orderId)
+    									   .orElseThrow( () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
+    		
+    		// 3. 결제 잠금
+    		Payments payment = paymentsRepository.findByIdForUpdate(paymentId)
+    											.orElseThrow( () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+    		
+    		// 4. 주문과 결제 연결 확인
+    		if (!payment.getOrders().getOrdersId().equals(order.getOrdersId())) {
+				throw new IllegalStateException("결제와 주문 정보가 일치하지 않습니다.");
+			}
+    		
+    		// 5. 실패한 결제인지 확인
+    		if (payment.getStatus() != PaymentStatus.FAILED) {
+				throw new IllegalStateException("실패한 결제만 재시도할 수 있습니다.");
+			}
+    		
+    		// 6. 주문 상세 확인
+    		List<OrdersDetail> details = ordersDetailRepository.findByOrders_OrdersId(orderId);
+    		
+    		if (details.isEmpty()) {
+				throw new IllegalStateException("주문 상세 정보가 없습니다.");
+			}
+    		
+    		for(OrdersDetail detail : details) {
+    			if (detail.getStatus() != OrdersDetailStatus.PENDING) {
+					throw new IllegalStateException("주문이 대기 상태가 아니므로 재시도할 수 없습니다.");
+				}
+    		}
+    		
+    		// 7. 좌석 선점 상태 검증
+    		String holdToken = order.getHoldToken();
+
+    		if (holdToken == null || holdToken.isBlank()
+    		        || order.getHoldExpiresAt() == null
+    		        || !order.getHoldExpiresAt().isAfter(LocalDateTime.now())) {
+
+    		    throw new IllegalStateException(
+    		            "좌석 선점이 만료되어 결제를 재시도할 수 없습니다.");
+    		}
+
+    		performanceSeatStatusService.validateHoldForRetry(
+    		        orderId, holdToken);
+
+    		// 8. FAILED → PENDING
+    		payment.retryPayment();
+    } // retryPayment
+    
 } // service
+
+
+
+
+
+
+
+
+
+

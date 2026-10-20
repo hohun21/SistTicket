@@ -80,6 +80,14 @@ public class Payments {
     	this.status = PaymentStatus.FAILED;
     }
     
+    // 결제 재시도 처리
+    public void retryPayment() {
+    		if (this.status != PaymentStatus.FAILED) {
+				throw new IllegalStateException("실패한 결제만 재시도할 수 있습니다.");
+			}
+    		this.status = PaymentStatus.PENDING;
+    }
+    
     // 
     public void cancelPayment(LocalDateTime cancelledAt) {
     	if(this.status != PaymentStatus.SUCCESS) {
@@ -87,6 +95,18 @@ public class Payments {
     	}
     	this.status = PaymentStatus.CANCELLED;
     	this.cancelledAt = cancelledAt;
+    }
+    
+    // 결제가 완료되지 않은 주문의 결제 상태 정리
+    public void cancelUnpaidPayment() {
+        if (this.status != PaymentStatus.PENDING
+                && this.status != PaymentStatus.FAILED) {
+            throw new IllegalStateException(
+                    "대기 또는 실패 상태의 결제만 정리할 수 있습니다.");
+        }
+
+        this.status = PaymentStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
     }
     
     
