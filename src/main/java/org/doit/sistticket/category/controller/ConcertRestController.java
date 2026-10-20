@@ -43,11 +43,11 @@ public class ConcertRestController {
         return ResponseEntity.ok(concertId);
     }
 
-    // 3. 콘서트 삭제 (DELETE /api/admin/concert/{id})
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteConcert(@PathVariable("id") Long concertId) {
         log.info("==> [API] 콘서트 삭제 요청 ID: " + concertId);
         concertService.deleteConcert(concertId);
+        
         return ResponseEntity.ok().build();
     }
 }

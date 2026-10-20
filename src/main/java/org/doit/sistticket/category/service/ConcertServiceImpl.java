@@ -220,11 +220,21 @@ public class ConcertServiceImpl implements ConcertService {
     }
 
 
-	@Override
-	public void deleteConcert(Long concertId) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    @Transactional
+    public void deleteConcert(Long concertId) {
+        // 1. 콘서트 존재 확인
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘서트입니다. ID: " + concertId));
+
+        // 2. 외래 키 충돌 방지를 위해 연관된 이미지 DB 기록 먼저 삭제
+        concertImgRepository.deleteByConcert_ConcertId(concertId);
+
+        // 3. 콘서트 삭제
+        concertRepository.delete(concert);
+        
+        log.info("==> 콘서트 및 연관 이미지 삭제 완료 ID: " + concertId);
+    }
 
 
 	@Override

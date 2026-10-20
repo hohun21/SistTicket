@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 @Getter
@@ -21,6 +22,7 @@ import lombok.ToString;
 @Builder
 @Entity
 @Table(name="roles")
+@Setter
 public class Role {
 	
 	@Id
