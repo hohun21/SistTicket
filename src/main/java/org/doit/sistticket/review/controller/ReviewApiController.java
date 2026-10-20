@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 
@@ -55,18 +57,29 @@ public class ReviewApiController {
 	public ResponseEntity<?> modifyReview(
 			@AuthenticationPrincipal CustomerUserDetails userDetails,
 			@PathVariable("reviewId") Long reviewId,
-			@RequestBody ReviewDTO reviewDTO) {
+			@RequestParam("rating") int rating,
+			@RequestParam("text") String text,
+			@RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+			@RequestParam(value = "deleteImage", defaultValue = "false") boolean deleteImage) {
 		
 		if (userDetails == null) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(Map.of("success", false, "message", "로그인이 필요합니다."));
 		}
 
-		// 본인 확인 등 필요한 검증 후 수정 실행
-		reviewDTO.setReviewId(reviewId);
-		reviewService.modify(reviewDTO);
+		ReviewDTO reviewDTO = ReviewDTO.builder()
+				.reviewId(reviewId)
+				.rating(rating)
+				.text(text)
+				.build();
 
-		return ResponseEntity.ok(Map.of("success", true, "message", "리뷰가 성공적으로 수정되었습니다."));
+		reviewService.modifyWithImage(reviewDTO, imageFile, deleteImage);
+
+		return ResponseEntity.ok(Map.of(
+				"success", true, 
+				"message", "리뷰가 성공적으로 수정되었습니다.",
+				"imgUrl", reviewDTO.getImgUrl() != null ? reviewDTO.getImgUrl() : ""
+		));
 	}
 
 	// 5. 리뷰 삭제

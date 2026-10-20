@@ -20,6 +20,8 @@ public interface ReviewService {
 	
 	void modify(ReviewDTO reviewDTO);
 	
+	void modifyWithImage(ReviewDTO reviewDTO, MultipartFile imageFile, boolean deleteImage);
+	
 	void remove(Long reviewId);
 	
 	default Reviews dtoToEntity(ReviewDTO reviewDTO) {
