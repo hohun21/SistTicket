@@ -39,6 +39,7 @@ public class Members extends BaseEntity {
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
+
     private int status;
 
 
