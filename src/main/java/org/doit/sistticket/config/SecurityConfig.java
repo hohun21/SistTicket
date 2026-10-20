@@ -25,8 +25,10 @@ public class SecurityConfig {
         		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 1. URL별 접근 권한
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/", "/concert/list", "/signup",
+
+						"/api/concert/**","/uploadAjax","/concert/**", "/signup",
                         "/css/**",
                         "/images/**",
                         "/js/**",

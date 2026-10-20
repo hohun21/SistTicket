@@ -11,6 +11,8 @@ import org.doit.sistticket.review.entity.Reviews;
 import org.doit.sistticket.review.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
@@ -85,14 +87,28 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	public List<ReviewDTO> getReviewsByConcertId(Long concertId) {
-		List<Reviews> result = reviewRepository.findByConcert_ConcertId(concertId);
-		return result.stream().map(entity -> entityToDto(entity)).collect(Collectors.toList());
+
+
+	    List<Reviews> result =
+	            reviewRepository.findByConcert_ConcertId(concertId);
+
+	    return result.stream()
+	            .map(entity -> entityToDto(entity))
+	            .collect(Collectors.toList());
+
 	}
 
 	@Override
 	public List<ReviewDTO> getReviewsByMemberId(Long memberId) {
-		List<Reviews> result = reviewRepository.findByMember_MemberId(memberId);
-		return result.stream().map(entity -> entityToDto(entity)).collect(Collectors.toList());
+
+
+	    List<Reviews> result =
+	            reviewRepository.findByMember_MemberId(memberId);
+
+	    return result.stream()
+	            .map(entity -> entityToDto(entity))
+	            .collect(Collectors.toList());
+
 	}
 	
 	@Transactional

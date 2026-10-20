@@ -47,7 +47,7 @@ public class MyPageServiceImpl implements MyPageService {
 		            .orderNo(detail.getOrders().getOrderNo())
 		            .performanceTitle(concertTitle)
 		            .price(detail.getPrice())
-		            .status(detail.getStatus())
+		            .status(detail.getStatus().name())
 		            .createdAt(detail.getCreatedAt())
 		            .isReviewed(hasReviewed)
 		            .build();
