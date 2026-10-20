@@ -45,17 +45,6 @@ public class OrdersService {
 	private final PerformancesRepository performancesRepository;
 	private final PaymentsRepository paymentsRepository;
 	private final PerformanceSeatStatusService performanceSeatStatusService;
-
-	private String getHoldToken(List<OrdersDetail> details) {
-		List<String> tokens = details.stream().map(detail -> detail.getPerformanceSeat().getHoldToken())
-											  .distinct().toList();
-		if (tokens.size() != 1
-		        || tokens.get(0) == null
-		        || tokens.get(0).isBlank()) {
-		    throw new IllegalStateException("주문 좌석의 선점 토큰이 없거나 일치하지 않습니다.");
-		}
-		return tokens.get(0);
-	}
 	
 	@Transactional
 	public Orders createOrder(
@@ -253,7 +242,7 @@ public class OrdersService {
 			seats.add(seat);
 		}
 
-		String holdToken = getHoldToken(details);
+		String holdToken = performanceSeatStatusService.getHoldToken(details);
 		
 		boolean released = performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
 		
@@ -318,7 +307,7 @@ public class OrdersService {
 			seats.add(seat);
 		}
 
-		String holdToken = getHoldToken(details);
+		String holdToken = performanceSeatStatusService.getHoldToken(details);
 		
 		boolean released = performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
 		
@@ -329,7 +318,6 @@ public class OrdersService {
 		for(OrdersDetail detail : details) {
 			detail.cancel();
 		}
-		
 
 		performanceSeatRepository.saveAll(seats);
 		ordersDetailRepository.saveAll(details);

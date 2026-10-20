@@ -150,4 +150,28 @@ public class PerformanceSeatStatusService {
         seats.forEach(PerformanceSeat::release);
         return true;
     }
+    
+    // 주문 좌석들의 현재 선점 토큰을 조회하고 일치 여부 확인
+    public String getHoldToken(List<OrdersDetail> details) {
+
+        if (details == null || details.isEmpty()) {
+            throw new IllegalStateException(
+                    "주문 상세 정보가 없습니다.");
+        }
+
+        List<String> tokens = details.stream()
+                .map(detail ->
+                        detail.getPerformanceSeat().getHoldToken())
+                .distinct()
+                .toList();
+
+        if (tokens.size() != 1
+                || tokens.get(0) == null
+                || tokens.get(0).isBlank()) {
+            throw new IllegalStateException(
+                    "주문 좌석의 선점 토큰이 없거나 일치하지 않습니다.");
+        }
+
+        return tokens.get(0);
+    }
 }
