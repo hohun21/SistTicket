@@ -94,7 +94,7 @@
             <th:block th:if="${concertList != null and !concertList.isEmpty()}">
                 <div class="col" th:each="concert : ${concertList}">
                     <div class="card h-100 shadow-sm position-relative">
-                        <a th:href="@{/admin/concert/edit/{id}(id=${concert.concertId})}" 
+                        <a th:href="@{/concert/edit/{id}(id=${concert.concertId})}" 
                            class="position-absolute top-0 end-0 m-2 btn btn-sm btn-light shadow-sm fw-bold text-dark">✏️ 수정</a>
                         <img th:src="${concert.imgUrl != null ? concert.imgUrl : '/images/default.png'}" class="card-img-top" style="height: 250px; object-fit: cover;">
                         <div class="card-body">

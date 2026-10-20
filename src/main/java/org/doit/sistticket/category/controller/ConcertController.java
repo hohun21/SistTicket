@@ -65,21 +65,16 @@ public class ConcertController {
         
         return "concert/concertForm"; // templates/admin/concert/form.html
     }
- // 콘서트 수정 폼 페이지 요청 (GET /admin/concert/edit/{id})
+    
+    // 2. 수정 폼 (기존 데이터 세팅)
     @GetMapping("/concert/edit/{id}")
-    public String concertEditForm(@PathVariable("id") Long concertId, Model model) {
-        log.info("==> 관리자 콘서트 수정 폼 페이지 요청 ID: " + concertId);
-        
-        // 1. 수정할 기존 콘서트 데이터 조회 (Detail DTO 또는 Request DTO 활용)
+    public String editForm(@PathVariable("id") Long concertId, Model model) {
         ConcertDetailResponseDTO concert = concertService.getDetail(concertId);
         
+        model.addAttribute("concert", concert);
         // 2. 셀렉트박스용 장소/장르 목록
         model.addAttribute("venues", venueService.getVenueList());
         model.addAttribute("genres", genreService.getGenreList());
-        
-        // 3. 기존 콘서트 데이터를 폼에 전달
-        model.addAttribute("concert", concert);
-        
-        return "concert/concertForm"; // 등록과 똑같은 form.html을 재사용!
+        return "concert/concertForm";
     }
 }

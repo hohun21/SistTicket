@@ -1,12 +1,8 @@
 package org.doit.sistticket.category.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
+import java.net.URI;
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,7 +11,6 @@ import org.doit.sistticket.category.dto.ConcertDetailResponseDTO;
 import org.doit.sistticket.category.dto.ConcertListResponseDTO;
 import org.doit.sistticket.category.dto.ConcertPageRequestDTO;
 import org.doit.sistticket.category.dto.ConcertRequestDTO;
-import org.doit.sistticket.category.dto.ImageUploadDTO;
 import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.ConcertImg;
 import org.doit.sistticket.category.entity.ConcertStatus;
@@ -37,10 +32,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.log4j.Log4j2;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+
+@Log4j2
 @Service
 public class ConcertServiceImpl implements ConcertService {
-
+	private static final String R2_ENDPOINT = "https://c118a7efdddd35d3edac1db3a63ed76d.r2.cloudflarestorage.com";
+	private static final String R2_ACCESS_KEY = "8f8a91958a3c06d4ce11ba80f5d60e2f";
+	private static final String R2_SECRET_KEY = "5ab97a22e5baa3fe630165a9e770f0eada870d8672aaea80d3258ccbc2440667";
+	private static final String R2_BUCKET = "productimage";
+	private static final String R2_PUBLIC_URL = "https://pub-3490b121289f419194b634a98c9d4ba5.r2.dev";
+	
+	
     @Autowired
     private ConcertRepository concertRepository;
     
@@ -62,23 +73,6 @@ public class ConcertServiceImpl implements ConcertService {
     private PerformanceCastRepository performanceCastRepository; // 캐스팅 조회용
 
     @Override
-    public List<ConcertListResponseDTO> getList() {
-        // 1. 모든 콘서트 조회
-        List<Concert> concerts = concertRepository.findAll();
-
-        // 2. 각 콘서트별 썸네일 URL을 조회하여 DTO로 변환
-        return concerts.stream().map(concert -> {
-            String thumbnailUrl = concertImgRepository
-                    .findByConcert_ConcertIdAndIsThumbnail(concert.getConcertId(), true)
-                    .map(ConcertImg::getImgUrl)
-                    .orElse("/images/default.jpg"); // 이미지가 없을 경우 대체 경로
-
-            return entityToListDto(concert, thumbnailUrl);
-        }).collect(Collectors.toList());
-    }
-
-
-    @Override
     public Page<ConcertListResponseDTO> getConcertList(ConcertPageRequestDTO requestDTO) {
         Pageable pageable = requestDTO.getPageable(Sort.by(Sort.Direction.DESC, "concertId"));
 
@@ -90,15 +84,23 @@ public class ConcertServiceImpl implements ConcertService {
                 pageable
         );
 
-        return concertPage.map(concert -> ConcertListResponseDTO.builder()
-                .concertId(concert.getConcertId())
-                .concertName(concert.getConcertName())
-                .genreName(concert.getGenre() != null ? concert.getGenre().getGenreName() : "기타")
-                .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
-                .startDate(concert.getStartDate())
-                .endDate(concert.getEndDate())
-                .imgUrl("")
-                .build());
+        return concertPage.map(concert -> {
+            //
+            String imgUrl = concertImgRepository.findByConcert_ConcertIdAndIsThumbnail(concert.getConcertId(), true)
+                    .map(ConcertImg::getImgUrl)
+                    .orElse(""); // 혹은 기본 이미지 경로
+
+            return ConcertListResponseDTO.builder()
+                    .concertId(concert.getConcertId())
+                    .concertName(concert.getConcertName())
+                    .genreName(concert.getGenre() != null ? concert.getGenre().getGenreName() : "기타")
+                    .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
+                    .startDate(concert.getStartDate())
+                    .endDate(concert.getEndDate())
+                    .imgUrl(imgUrl) // 💡 썸네일 URL 연결!
+                    .build();
+        });
+		        
     }
     
     
@@ -115,103 +117,203 @@ public class ConcertServiceImpl implements ConcertService {
         List<Long> performanceIds = performances.stream()
                 .map(Performances::getPerformanceId)
                 .collect(Collectors.toList());
-
+        
+        String imgUrl = concertImgRepository.findByConcert_ConcertIdAndIsThumbnail(concertId, true)
+                .map(ConcertImg::getImgUrl)
+                .orElse("");
         // 해당 회차들에 속한 캐스팅 정보만 조회! (회차가 없다면 빈 리스트)
         List<PerformanceCast> casts = performanceIds.isEmpty() ? 
                 List.of() : performanceCastRepository.findByPerformance_PerformanceIdIn(performanceIds);
 
         //인터페이스의 default 변환 메서드를 호출하여 상세 DTO 반환
-        return entityToDetailDto(concert, performances, casts);
+        return entityToDetailDto(concert, performances, casts, imgUrl);
     }
     
     @Override
-    public Long registerConcert(ConcertRequestDTO dto) {
-    	
-    	// 1. ID로 Genre와 Venue 엔티티 조회 (없으면 예외 처리)
+    @Transactional
+    public Long registerConcert(ConcertRequestDTO dto, List<MultipartFile> imageFiles) {
+        
+        // 1. ID로 Genre와 Venue 엔티티 조회 (없으면 예외 처리)
         Genre genre = genreRepository.findById(dto.getGenreId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장르입니다."));
                 
         Venue venue = venueRepository.findById(dto.getVenueId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장소입니다."));
-        // 1. 콘서트 엔티티 저장
+
+        // 2. 콘서트 기본 정보 먼저 저장 (Concert PK 확보)
         Concert concert = Concert.builder()
                 .concertName(dto.getConcertName())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .runTime(Duration.ofMinutes(dto.getRunTimeMinutes()))
-                .genre(genre) // 💡 장르 객체 연결
-                .venue(venue) // 💡 장소 객체 연결
-                .status(ConcertStatus.UPCOMING) // 💡 기본 상태값 지정해주기
+                .genre(genre)
+                .venue(venue)
+                .status(ConcertStatus.UPCOMING)
                 .build();
 
         Concert savedConcert = concertRepository.save(concert);
 
-        // 2. 이미지 정보 저장 (UploadResultDTO 활용)
-        if (dto.getImageDTOs() != null && !dto.getImageDTOs().isEmpty()) {
-            int order = 0;
-            for (ImageUploadDTO imgDto : dto.getImageDTOs()) {
-                // 첫 번째 이미지를 썸네일(true)로 지정하거나 별도 구분 로직 적용 가능
-                boolean isThumb = (order == 0); 
+        // 3. S3Client를 이용한 다중 이미지 업로드 및 `concert_imgs` 테이블 저장
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            
+            S3Configuration s3Configuration = S3Configuration.builder()
+                    .chunkedEncodingEnabled(false)
+                    .build();
 
-                ConcertImg concertImg = ConcertImg.builder()
-                        .concert(savedConcert)
-                        .uuid(imgDto.getUuid())
-                        .imgName(imgDto.getFileName())
-                        .path(imgDto.getFolderPath())
-                        .isThumbnail(isThumb)
-                        .imgOrder(order++)
-                        .build();
+            try (S3Client s3Client = S3Client.builder()
+                    .endpointOverride(URI.create(R2_ENDPOINT))
+                    .region(Region.of("auto"))
+                    .credentialsProvider(StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create(R2_ACCESS_KEY, R2_SECRET_KEY)))
+                    .serviceConfiguration(s3Configuration)
+                    .build()) {
 
-                concertImgRepository.save(concertImg);
+                int order = 0;
+                for (MultipartFile imageFile : imageFiles) {
+                    if (imageFile.isEmpty()) continue;
+
+                    String originalFileName = imageFile.getOriginalFilename();
+                    String uuid = UUID.randomUUID().toString();
+                    String savedFileName = uuid + "_" + originalFileName;
+                    String objectKey = "concerts/" + savedFileName; // S3 저장 폴더 경로
+
+                    // S3 업로드 요청 객체 생성
+                    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                            .bucket(R2_BUCKET)
+                            .key(objectKey)
+                            .contentType(imageFile.getContentType())
+                            .build();
+
+                    // S3 버킷에 파일 업로드 실행
+                    s3Client.putObject(putObjectRequest, 
+                            RequestBody.fromInputStream(imageFile.getInputStream(), imageFile.getSize()));
+
+                    // 퍼블릭 URL 생성
+                    String imgUrl = R2_PUBLIC_URL + "/" + objectKey;
+
+                    // 첫 번째 이미지만 썸네일(true)로 지정
+                    boolean isThumb = (order == 0);
+
+                    // ConcertImg 엔티티 빌드 및 저장
+                    ConcertImg concertImg = ConcertImg.builder()
+                            .concert(savedConcert)
+                            .imgUrl(imgUrl)
+                            .isThumbnail(isThumb)
+                            .imgOrder(order)
+                            .uuid(uuid)
+                            .imgName(originalFileName)
+                            .path("concerts/")
+                            .build();
+
+                    concertImgRepository.save(concertImg);
+                    order++;
+                }
+
+            } catch (Exception e) {
+                log.error("S3 콘서트 이미지 다중 업로드 중 오류 발생: " + e.getMessage());
+                throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.", e);
             }
         }
 
         return savedConcert.getConcertId();
     }
 
-	@Override
-	public void updateConcert(Long concertId, ConcertRequestDTO dto) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void deleteConcert(Long concertId) {
 		// TODO Auto-generated method stub
 		
 	}
-	private String makeFolder(String uploadFolder) {
-	    String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-	    String folderPath = str.replace("/", File.separator);
-	    
-	    File uploadPath = new File(uploadFolder, folderPath);
-	    if (!uploadPath.exists()) {
-	        uploadPath.mkdirs();
-	    }
-	    return folderPath;
-	}
-	private ImageUploadDTO saveFile(MultipartFile multipartFile, String uploadFolder) {
-	    String originalName = multipartFile.getOriginalFilename();
-	    
-	    // IE나 Edge 등 경로가 포함되어 들어오는 경우 파일명만 추출
-	    String fileName = originalName.substring(originalName.lastIndexOf("\\") + 1);
-	    
-	    String uuid = UUID.randomUUID().toString();
-	    
-	    // 날짜 폴더 생성 (예: 2026/06/01)
-	    String folderPath = makeFolder(uploadFolder);
-	    
-	    String saveName = uuid + "_" + fileName;
-	    Path savePath = Paths.get(uploadFolder, folderPath, saveName);
-	    
-	    try {
-	        multipartFile.transferTo(savePath.toFile()); // 실제 파일 저장
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
-	    
-	    return new ImageUploadDTO(fileName, uuid, folderPath);
+
+
+	@Override
+	public Long registerConcert(ConcertRequestDTO dto) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
+
+	@Override
+	@Transactional
+	public void updateConcert(Long concertId, ConcertRequestDTO dto, List<MultipartFile> imageFiles) {
+	    
+	    // 1. 기존 콘서트 조회 및 정보 수정
+	    Concert concert = concertRepository.findById(concertId)
+	            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘서트입니다. ID: " + concertId));
+
+	    Genre genre = genreRepository.findById(dto.getGenreId())
+	            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장르입니다."));
+	    Venue venue = venueRepository.findById(dto.getVenueId())
+	            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장소입니다."));
+
+	    concert.setConcertName(dto.getConcertName());
+	    concert.setStartDate(dto.getStartDate());
+	    concert.setEndDate(dto.getEndDate());
+	    concert.setRunTime(Duration.ofMinutes(dto.getRunTimeMinutes()));
+	    concert.setStatus(dto.getStatus());
+	    concert.setGenre(genre);
+	    concert.setVenue(venue);
+
+	    // 2. 새로운 이미지 파일들이 들어온 경우 (단일 or 다중 전부 지원)
+	    if (imageFiles != null && !imageFiles.isEmpty() && !imageFiles.get(0).isEmpty()) {
+	        
+	        // 💡 ① 기존 연관 이미지 DB 기록 싹 삭제! (중복 썸네일 원천 차단)
+	        concertImgRepository.deleteByConcert_ConcertId(concertId);
+
+	        S3Configuration s3Configuration = S3Configuration.builder()
+	                .chunkedEncodingEnabled(false)
+	                .build();
+
+	        try (S3Client s3Client = S3Client.builder()
+	                .endpointOverride(URI.create(R2_ENDPOINT))
+	                .region(Region.of("auto"))
+	                .credentialsProvider(StaticCredentialsProvider.create(
+	                        AwsBasicCredentials.create(R2_ACCESS_KEY, R2_SECRET_KEY)))
+	                .serviceConfiguration(s3Configuration)
+	                .build()) {
+
+	            // 💡 ② 다중 파일 루프 처리
+	            for (int i = 0; i < imageFiles.size(); i++) {
+	                MultipartFile imageFile = imageFiles.get(i);
+	                if (imageFile.isEmpty()) continue;
+
+	                String originalFileName = imageFile.getOriginalFilename();
+	                String uuid = UUID.randomUUID().toString();
+	                String savedFileName = uuid + "_" + originalFileName;
+	                String objectKey = "concerts/" + savedFileName;
+
+	                PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+	                        .bucket(R2_BUCKET)
+	                        .key(objectKey)
+	                        .contentType(imageFile.getContentType())
+	                        .build();
+
+	                s3Client.putObject(putObjectRequest, 
+	                        RequestBody.fromInputStream(imageFile.getInputStream(), imageFile.getSize()));
+
+	                String imgUrl = R2_PUBLIC_URL + "/" + objectKey;
+
+	                // 💡 첫 번째 파일(i == 0)만 유일한 썸네일(true), 나머지는 false
+	                boolean isThumb = (i == 0);
+
+	                ConcertImg concertImg = ConcertImg.builder()
+	                        .concert(concert)
+	                        .imgUrl(imgUrl)
+	                        .isThumbnail(isThumb)
+	                        .imgOrder(i)
+	                        .uuid(uuid)
+	                        .imgName(originalFileName)
+	                        .path("concerts/")
+	                        .build();
+
+	                concertImgRepository.save(concertImg);
+	            }
+
+	        } catch (Exception e) {
+	            log.error("S3 콘서트 수정 이미지 업로드 중 오류 발생: " + e.getMessage());
+	            throw new RuntimeException("이미지 수정 중 오류가 발생했습니다.", e);
+	        }
+	    }
+	}
 
 }
