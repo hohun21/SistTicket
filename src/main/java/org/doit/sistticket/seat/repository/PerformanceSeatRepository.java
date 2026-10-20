@@ -1,6 +1,8 @@
+
 package org.doit.sistticket.seat.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +15,7 @@ import jakarta.persistence.LockModeType;
 public interface PerformanceSeatRepository
         extends JpaRepository<PerformanceSeat, Long> {
 
-	// 공연 회차 좌석 조회
+    // 특정 공연 회차의 좌석 조회
     @Query("""
         select ps
         from PerformanceSeat ps
@@ -25,7 +27,17 @@ public interface PerformanceSeatRepository
     List<PerformanceSeat> findSeatsByPerformanceId(
             @Param("performanceId") Long performanceId);
 
-    // 임시 선점 좌석 조회
+    // ID로 좌석을 잠금 조회: 주문·결제 서비스용
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select ps
+        from PerformanceSeat ps
+        where ps.performanceSeatId = :id
+        """)
+    Optional<PerformanceSeat> findByIdForUpdate(
+            @Param("id") Long id);
+
+    // 특정 공연의 여러 좌석을 잠금 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         select ps
@@ -38,7 +50,7 @@ public interface PerformanceSeatRepository
             @Param("performanceId") Long performanceId,
             @Param("seatIds") List<Long> seatIds);
 
-    // 예약 시 좌석 잠금 후 조회
+    // 홀드 토큰으로 좌석 잠금 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         select ps

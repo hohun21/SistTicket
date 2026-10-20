@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>좌석 선택 | SIST TICKET</title>
+  <style>
+    :root{--bg:#0b0d18;--surface:#15182a;--surface2:#20233a;--line:#333650;--text:#f5f5fa;--muted:#a7a9bb;--purple:#8b5cf6;--purple2:#aa8bff;--green:#54d7ad;--radius:18px}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Noto Sans KR",Arial,sans-serif;line-height:1.5}button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}
+    .site-header{height:80px;border-bottom:1px solid #272a40;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 1200px)/2));background:#0b0d18}.brand{font-size:25px;font-weight:900;letter-spacing:-1px}.brand::first-letter{color:var(--purple2)}.header-right{display:flex;align-items:center;gap:18px;color:#e9e8f1;font-size:14px}.header-link{background:var(--purple);padding:11px 21px;border-radius:10px;font-weight:700}
+    .wrap{max-width:1200px;margin:0 auto;padding:34px 24px 70px}.eyebrow{display:inline-block;color:#c8b7ff;font-size:12px;letter-spacing:.12em;font-weight:800;border:1px solid #6a529a;border-radius:99px;padding:6px 12px;background:#292045}.page-title{margin:16px 0 7px;font-size:36px;letter-spacing:-.045em}.subtitle{color:var(--muted);margin:0}.performance-info{margin-top:22px;padding:19px 22px;border-radius:15px;background:linear-gradient(110deg,#242038,#1b1b30);border:1px solid #514078;display:flex;justify-content:space-between;gap:16px;align-items:center}.performance-info h2{font-size:18px;margin:2px 0 4px}.performance-info p{margin:0;color:#c4bdd7;font-size:14px}.performance-info small{color:#ad9dd4;font-size:12px}.performance-badge{font-size:12px;font-weight:800;background:#493478;color:#eee5ff;border-radius:99px;padding:7px 12px;white-space:nowrap}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;margin-top:26px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 14px 42px #0002}.map-panel{padding:27px 26px 30px}.panel-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.panel-heading h2,.summary h2{margin:0;font-size:21px}.panel-heading p{margin:5px 0 0;color:var(--muted);font-size:14px}.refresh{border:1px solid #524875;color:#e4dcff;background:#2a2443;border-radius:10px;padding:8px 13px}.refresh:hover{border-color:var(--purple2)}.stage{max-width:560px;margin:30px auto 33px;padding:14px;text-align:center;letter-spacing:.3em;font-size:12px;font-weight:900;color:#c7b4ff;border:1px solid #67549b;border-radius:10px 10px 50% 50%;background:linear-gradient(90deg,#28213f,#38245e,#28213f)}
+    .seat-map{display:flex;flex-direction:column;gap:22px;align-items:center;min-height:330px}.floor{width:100%;display:flex;flex-direction:column;align-items:center;gap:7px}.floor-title{width:100%;display:flex;align-items:center;gap:12px;color:#ddd8ea;font-size:14px;font-weight:800;margin:2px 0 8px}.floor-title::before,.floor-title::after{content:"";height:1px;background:#38374b;flex:1}.seat-row{display:flex;align-items:center;gap:4px}.row-label{width:28px;color:#b8b8ca;font-size:13px;font-weight:800;text-align:center;margin-right:8px}.seat{width:29px;height:25px;border-radius:2px;border:1px solid transparent;color:#fff;font-weight:800;font-size:11px;transition:transform .14s,filter .14s,box-shadow .14s}.seat.grade-s,.swatch.grade-s{background:#9b65df}.seat.grade-a,.swatch.grade-a{background:#3f84d8}.seat.grade-r,.swatch.grade-r{background:#27a58f}.seat:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.2)}.seat.selected{box-shadow:0 0 0 2px #fff,0 0 0 4px #8b5cf6}.seat:disabled{cursor:not-allowed;opacity:.4}.seat.held,.seat.reserved{filter:grayscale(1)}.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:15px;margin-top:22px;padding-top:21px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}.legend-item{display:flex;align-items:center;gap:7px}.swatch{width:17px;height:17px;border-radius:5px;border:1px solid #5f6480;background:#2b3045}.swatch.selected{background:#463a67;border:2px solid #fff}.swatch.held{background:#55566b}.swatch.reserved{background:#393a47}.legend-label{width:100%;text-align:center;color:#d6d0e5;font-size:12px;font-weight:800;letter-spacing:.04em}
+    .summary{padding:26px;align-self:start;position:sticky;top:100px}.summary .sub{color:var(--muted);font-size:13px;margin:7px 0 21px}.summary-list{min-height:150px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0}.empty{color:var(--muted);font-size:14px;margin:34px 0;text-align:center}.picked{display:flex;justify-content:space-between;gap:10px;padding:9px 0;font-size:14px}.picked small{display:block;color:var(--muted);font-size:12px}.picked strong{white-space:nowrap}.total{display:flex;justify-content:space-between;align-items:baseline;margin:19px 0 20px}.total span{color:var(--muted);font-size:14px}.total strong{font-size:24px;color:#cdbbff}.primary{width:100%;border:0;border-radius:11px;background:var(--purple);color:white;font-weight:800;padding:15px}.primary:hover:not(:disabled){background:#9d71ff}.primary:disabled{background:#4d4567;color:#bdb4d3;cursor:not-allowed}.helper{font-size:12px;color:var(--muted);margin:13px 0 0}.message{min-height:23px;margin:14px 0 0;font-size:13px;color:#d7c6ff}.message.error{color:#ffb0b6}.message.success{color:var(--green)}
+    @media(max-width:800px){.site-header{height:66px}.header-right span{display:none}.wrap{padding:25px 16px 55px}.page-title{font-size:29px}.layout{grid-template-columns:1fr}.summary{position:static}.map-panel{padding:22px 9px}.seat{width:clamp(23px,6vw,29px);height:25px;font-size:10px}.seat-row{gap:3px}.row-label{width:18px;margin-right:5px}.performance-info{align-items:flex-start;flex-direction:column}}
+    .venue-stage{position:relative;display:grid;place-items:center;width:min(78%,540px);height:76px;margin:36px auto 49px;border:1px solid #755eaa;border-radius:14px 14px 48% 48%;background:linear-gradient(180deg,#3a2a60 0%,#292440 68%,#232137 100%);box-shadow:0 17px 45px #7245cc24, inset 0 1px #bda7ed44;overflow:hidden}
+    .venue-stage::after{content:"";position:absolute;inset:auto 7% -43px;height:72px;border-radius:50%;background:#ae87ff25;filter:blur(24px)}
+    .venue-stage span{position:relative;z-index:1;color:#e1d2ff;font-size:13px;font-weight:900;letter-spacing:.24em}
+    .seat-map{gap:43px;min-height:490px}.floor{gap:14px}.floor-title{margin:0 0 17px}.seat-row{gap:7px}.row-label{margin-right:12px}.seat{width:33px;height:32px;border-radius:6px;font-size:11px}
+    .floor-access{display:flex;justify-content:space-between;gap:14px;width:min(100%,500px);margin-top:10px}.floor-access span{padding:7px 11px;border:1px solid #44516a;border-radius:8px;background:#1b2436;color:#cbd7ec;font-size:11px;font-weight:800}.floor-access .emergency{border-color:#655057;background:#2c252d;color:#f0b8bd}
+    @media(max-width:800px){.venue-stage{width:82%;height:61px;margin:28px auto 40px}.seat-map{gap:34px;min-height:440px}.floor{gap:11px}.floor-title{margin-bottom:12px}.seat{width:clamp(23px,6vw,33px);height:30px}.seat-row{gap:4px}.row-label{margin-right:6px}.floor-access{width:min(100%,390px)}}
+  </style>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">HOON HOme</a><div class="header-right"><span>다음 순간을 위한 좌석을 선택하세요</span><a class="header-link" href="/">홈으로</a></div></header>
+  <main class="wrap">
+    <span class="eyebrow">SIST TICKET · SEAT SELECTION</span>
+    <h1 class="page-title">좌석 선택</h1>
+    <p class="subtitle">원하는 좌석을 선택하세요. 선점 후 결제 준비를 이어갈 수 있습니다.</p>
+    <section class="performance-info" aria-label="공연 정보"><div><small id="modeNote">공연 정보를 불러오는 중입니다</small><h2 id="performanceName">공연 회차</h2><p id="performanceMeta"></p></div><span class="performance-badge" id="performanceBadge">좌석 선택</span></section>
+    <div class="layout">
+      <section class="panel map-panel" aria-labelledby="mapTitle">
+        <div class="panel-heading"><div><h2 id="mapTitle">공연장 좌석도</h2><p id="mapDescription">좌석 정보를 불러오는 중입니다.</p></div><button class="refresh" id="refreshButton" type="button">새로고침</button></div>
+        <div class="venue-stage" aria-label="무대"><span>STAGE · 무대</span></div>
+        <div class="seat-map" id="seatMap" aria-live="polite"></div>
+        <div class="legend"><span class="legend-label">좌석 등급</span><span class="legend-item"><i class="swatch grade-s"></i>S석 · 200,000원</span><span class="legend-item"><i class="swatch grade-a"></i>A석 · 150,000원</span><span class="legend-item"><i class="swatch grade-r"></i>R석 · 130,000원</span><span class="legend-label">선택 상태</span><span class="legend-item"><i class="swatch selected"></i>선택 중</span><span class="legend-item"><i class="swatch held"></i>임시 선점</span><span class="legend-item"><i class="swatch reserved"></i>예매 완료</span></div>
+      </section>
+      <aside class="panel summary" aria-labelledby="summaryTitle"><h2 id="summaryTitle">선택한 좌석</h2><p class="sub">좌석을 누르면 이곳에 표시됩니다.</p><div class="summary-list" id="selectedList"></div><div class="total"><span>예상 결제 금액</span><strong id="totalPrice">0원</strong></div><button class="primary" id="holdButton" type="button" disabled>좌석 선택하기</button><p class="helper">가격은 화면 표시용입니다. 실제 결제 금액은 서버에서 다시 확인합니다.</p><p class="message" id="message" role="status"></p></aside>
+    </div>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const performanceId = params.get('performanceId');
+    const isDemo = !performanceId;
+    const state = { seats: [], selected: new Set(), held: false };
+    const $ = id => document.getElementById(id);
+    const money = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+    const demoSeats = Array.from({length: 80}, (_, i) => {
+      const row = Math.floor(i / 10);
+      const grade = row < 2 ? 'S' : [2, 3, 5].includes(row) ? 'A' : 'R';
+      return { performanceSeatId: i + 1, seatId: i + 1, rowLabel: String.fromCharCode(65 + row), seatNumber: i % 10 + 1, gradeName: grade, price: grade === 'S' ? 200000 : grade === 'A' ? 150000 : 130000, status: 'AVAILABLE' };
+    });
+    function gradeClass(name) { const grade = String(name || '').trim().toUpperCase().replace(/석$/, ''); return ['S','A','R'].includes(grade) ? `grade-${grade.toLowerCase()}` : ''; }
+    function gradeLabel(name) { const grade = String(name || '').trim(); return grade.endsWith('석') ? grade : `${grade}석`; }
+    function showPerformanceInfo() {
+      if (isDemo) { $('modeNote').textContent = '화면 미리보기 · 예시 정보'; $('performanceName').textContent = '뮤지컬 공연 A'; $('performanceMeta').textContent = '2026. 11. 01. 오후 7:30 · 공연장 A · 1층 50석 / 2층 30석'; $('performanceBadge').textContent = '예시 회차'; return; }
+      $('modeNote').textContent = '선택한 공연 회차';
+      $('performanceName').textContent = params.get('concertName') || `공연 회차 #${performanceId}`;
+      $('performanceMeta').textContent = [params.get('performanceDate'), params.get('venueName'), '1층 50석 / 2층 30석'].filter(Boolean).join(' · ');
+      $('performanceBadge').textContent = `회차 #${performanceId}`;
+    }
+    function message(text, type = '') { $('message').textContent = text; $('message').className = `message ${type}`; }
+    function renderSummary() {
+      const picked = state.seats.filter(seat => state.selected.has(seat.performanceSeatId));
+      $('selectedList').innerHTML = picked.length ? picked.map(seat => `<div class="picked"><span><b>${escapeHtml(seat.rowLabel)}열 ${seat.seatNumber}번</b><small>${escapeHtml(gradeLabel(seat.gradeName))}</small></span><strong>${money(seat.price)}</strong></div>`).join('') : '<p class="empty">아직 선택한 좌석이 없습니다.</p>';
+      $('totalPrice').textContent = money(picked.reduce((sum, seat) => sum + Number(seat.price || 0), 0));
+      $('holdButton').disabled = !picked.length || state.held;
+      $('holdButton').textContent = state.held ? '선점 완료' : `좌석 ${picked.length}개 임시 선점하기`;
+    }
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function renderMap() {
+      const map = $('seatMap'); map.replaceChildren();
+      const rows = new Map();
+      state.seats.forEach(seat => { const key = seat.rowLabel || '?'; if (!rows.has(key)) rows.set(key, []); rows.get(key).push(seat); });
+      for (const [floorName, labels] of [['1층',['A','B','C','D','E']],['2층',['F','G','H']],['기타', [...rows.keys()].filter(label => !'ABCDEFGH'.includes(label))]]) {
+        const present = labels.filter(label => rows.has(label)); if (!present.length) continue;
+        const floor = document.createElement('div'); floor.className = 'floor';
+        const heading = document.createElement('div'); heading.className = 'floor-title'; heading.textContent = `${floorName} · ${present.reduce((sum,label) => sum + rows.get(label).length, 0)}석`; floor.append(heading);
+        for (const label of present) {
+        const seats = rows.get(label); const row = document.createElement('div'); row.className = 'seat-row';
+        const marker = document.createElement('span'); marker.className = 'row-label'; marker.textContent = label; row.append(marker);
+        seats.sort((a,b) => a.seatNumber - b.seatNumber).forEach((seat, index) => {
+          const button = document.createElement('button'); button.type = 'button'; button.className = `seat ${gradeClass(seat.gradeName)} ${String(seat.status || '').toLowerCase()}${state.selected.has(seat.performanceSeatId) ? ' selected' : ''}`;
+          button.textContent = seat.seatNumber; button.title = `${label}열 ${seat.seatNumber}번 · ${seat.gradeName} · ${money(seat.price)} · ${seat.status}`;
+          button.setAttribute('aria-label', button.title); button.setAttribute('aria-pressed', state.selected.has(seat.performanceSeatId));
+          button.disabled = seat.status !== 'AVAILABLE' || state.held;
+          button.addEventListener('click', () => { if (state.selected.has(seat.performanceSeatId)) state.selected.delete(seat.performanceSeatId); else state.selected.add(seat.performanceSeatId); renderMap(); renderSummary(); message(''); });
+          row.append(button);
+        }); floor.append(row);
+        }
+        if (floorName === '1층' || floorName === '2층') {
+          const access = document.createElement('div'); access.className = 'floor-access';
+          const left = document.createElement('span');
+          const right = document.createElement('span');
+          if (floorName === '1층') { left.textContent = '← 비상구'; left.className = 'emergency'; right.textContent = '입구 →'; }
+          else { left.textContent = '← 입구'; right.textContent = '비상구 →'; right.className = 'emergency'; }
+          access.append(left, right); floor.append(access);
+        }
+        map.append(floor);
+      }
+      $('mapDescription').textContent = `${state.seats.length}개 좌석 · 선택 가능 ${state.seats.filter(s => s.status === 'AVAILABLE').length}개`;
+      renderSummary();
+    }
+    async function loadSeats() {
+      message(''); state.selected.clear(); state.held = false;
+      showPerformanceInfo();
+      if (isDemo) { state.seats = demoSeats.map(s => ({...s})); renderMap(); return; }
+      try {
+        const response = await fetch(`/api/performances/${encodeURIComponent(performanceId)}/seats`, { credentials: 'same-origin' });
+        if (!response.ok || response.redirected || !(response.headers.get('content-type') || '').includes('json')) throw new Error(response.status === 401 || response.redirected ? '로그인 후 다시 열어 주세요.' : '좌석 정보를 불러오지 못했습니다.');
+        state.seats = await response.json(); renderMap();
+      } catch (error) { state.seats = []; $('seatMap').textContent = '좌석 정보를 표시할 수 없습니다.'; $('mapDescription').textContent = ''; renderSummary(); message(error.message, 'error'); }
+    }
+    async function holdSeats() {
+      if (!state.selected.size || state.held) return;
+      if (isDemo) { message('미리보기에서는 실제 선점 요청을 보내지 않습니다.', 'success'); return; }
+      $('holdButton').disabled = true; message('좌석을 선점하는 중입니다.');
+      try {
+        const response = await fetch(`/api/performances/${encodeURIComponent(performanceId)}/holds`, { method: 'POST', credentials: 'same-origin', headers: {'Content-Type':'application/json'}, body: JSON.stringify({performanceSeatIds: [...state.selected]}) });
+        if (!response.ok) throw new Error(response.status === 409 ? '선택한 좌석 중 이미 선점된 좌석이 있습니다. 좌석을 새로고침해 주세요.' : '선점에 실패했습니다. 다시 시도해 주세요.');
+        const result = await response.json(); state.held = true; renderMap();
+        message(`선점 완료 · ${new Date(result.holdExpiresAt).toLocaleTimeString('ko-KR')}까지 유효합니다. 결제 화면 연결은 준비 중입니다.`, 'success');
+      } catch (error) { message(error.message, 'error'); $('holdButton').disabled = false; }
+    }
+    $('refreshButton').addEventListener('click', loadSeats);
+    $('holdButton').addEventListener('click', holdSeats);
+    loadSeats();
+  </script>
+</body>
+</html>

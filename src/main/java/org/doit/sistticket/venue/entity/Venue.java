@@ -6,11 +6,22 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
+
+@Getter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
-@Table(name="venues")
 @Setter
+@Table(name="venues")
 public class Venue {
 	
 	@Id
@@ -27,7 +38,7 @@ public class Venue {
 	@Column(name = "detail_address")
 	private String detailAddress;
 	
-	@Column(name = "capacity", nullable=false)
+	@Column(name = "capacity")
 	private long capacity;
 	
 	
