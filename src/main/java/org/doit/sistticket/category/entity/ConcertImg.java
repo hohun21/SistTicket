@@ -2,6 +2,7 @@ package org.doit.sistticket.category.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,7 +31,7 @@ public class ConcertImg {
     @Column(name = "concert_img_id", nullable = false)
     private long concertImgId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "concert_id", nullable = false)
     private Concert concert;
 
@@ -42,4 +43,8 @@ public class ConcertImg {
 
     @Column(name = "img_order")
     private int imgOrder;
+    
+    private String uuid;      // 파일 중복 방지 고유 번호
+    private String imgName;   // 원본 파일 이름
+    private String path;      // 업로드 저장 경로 (날짜별 폴더 등)
 }

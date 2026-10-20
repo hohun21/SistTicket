@@ -5,10 +5,13 @@ import java.util.stream.Collectors;
 
 import org.doit.sistticket.category.dto.ConcertDetailResponseDTO;
 import org.doit.sistticket.category.dto.ConcertListResponseDTO;
+import org.doit.sistticket.category.dto.ConcertPageRequestDTO;
 import org.doit.sistticket.category.dto.ConcertRequestDTO;
 import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.PerformanceCast;
 import org.doit.sistticket.category.entity.Performances;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ConcertService {
 
@@ -77,4 +80,7 @@ public interface ConcertService {
 	void updateConcert(Long concertId, ConcertRequestDTO dto);
 
 	void deleteConcert(Long concertId);
+
+
+	Page<ConcertListResponseDTO> getConcertList(ConcertPageRequestDTO requestDTO);
 }

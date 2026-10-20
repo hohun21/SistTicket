@@ -9,17 +9,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
-@RequestMapping("/api/admin/concert")
+@RequestMapping("/api/concert")
 @RequiredArgsConstructor
 @Log4j2
 public class ConcertRestController {
 
     private final ConcertService concertService;
 
-    // 1. 콘서트 등록 (POST /api/admin/concert)
     @PostMapping
     public ResponseEntity<Long> registerConcert(@RequestBody ConcertRequestDTO dto) {
-        log.info("==> [API] 콘서트 등록 요청: " + dto);
+        log.info("==> [API] JSON 기반 콘서트 등록 요청: " + dto);
         Long concertId = concertService.registerConcert(dto);
         return ResponseEntity.ok(concertId);
     }

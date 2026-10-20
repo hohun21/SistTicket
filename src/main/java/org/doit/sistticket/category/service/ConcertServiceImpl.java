@@ -1,12 +1,21 @@
 package org.doit.sistticket.category.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.doit.sistticket.category.dto.ConcertDetailResponseDTO;
 import org.doit.sistticket.category.dto.ConcertListResponseDTO;
+import org.doit.sistticket.category.dto.ConcertPageRequestDTO;
 import org.doit.sistticket.category.dto.ConcertRequestDTO;
+import org.doit.sistticket.category.dto.ImageUploadDTO;
 import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.ConcertImg;
 import org.doit.sistticket.category.entity.ConcertStatus;
@@ -21,7 +30,11 @@ import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.venue.entity.Venue;
 import org.doit.sistticket.venue.repository.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.transaction.Transactional;
 
@@ -64,6 +77,31 @@ public class ConcertServiceImpl implements ConcertService {
         }).collect(Collectors.toList());
     }
 
+
+    @Override
+    public Page<ConcertListResponseDTO> getConcertList(ConcertPageRequestDTO requestDTO) {
+        Pageable pageable = requestDTO.getPageable(Sort.by(Sort.Direction.DESC, "concertId"));
+
+        // @Query 단일 메서드로 장르 + type별(n, v, nv) 검색 한번에 처리
+        Page<Concert> concertPage = concertRepository.searchConcerts(
+                requestDTO.getGenreId(),
+                requestDTO.getType(),
+                requestDTO.getSearchKeyword(),
+                pageable
+        );
+
+        return concertPage.map(concert -> ConcertListResponseDTO.builder()
+                .concertId(concert.getConcertId())
+                .concertName(concert.getConcertName())
+                .genreName(concert.getGenre() != null ? concert.getGenre().getGenreName() : "기타")
+                .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
+                .startDate(concert.getStartDate())
+                .endDate(concert.getEndDate())
+                .imgUrl("")
+                .build());
+    }
+    
+    
     @Override
     public ConcertDetailResponseDTO getDetail(Long concertId) {
         //특정 콘서트 단건 조회
@@ -87,54 +125,44 @@ public class ConcertServiceImpl implements ConcertService {
     }
     
     @Override
-    @Transactional
     public Long registerConcert(ConcertRequestDTO dto) {
-        // 1. 장소 및 장르 조회
-        Venue venue = venueRepository.findById(dto.getVenueId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장소 ID입니다."));
+    	
+    	// 1. ID로 Genre와 Venue 엔티티 조회 (없으면 예외 처리)
         Genre genre = genreRepository.findById(dto.getGenreId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장르 ID입니다."));
-
-        Duration runTime = dto.getRunTimeMinutes() != null ? 
-                Duration.ofMinutes(dto.getRunTimeMinutes()) : null;
-
-        // 2. Concert 저장
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장르입니다."));
+                
+        Venue venue = venueRepository.findById(dto.getVenueId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장소입니다."));
+        // 1. 콘서트 엔티티 저장
         Concert concert = Concert.builder()
                 .concertName(dto.getConcertName())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
-                .venue(venue)
-                .genre(genre)
-                .status(dto.getStatus() != null ? dto.getStatus() : ConcertStatus.UPCOMING)
-                .runTime(runTime)
+                .runTime(Duration.ofMinutes(dto.getRunTimeMinutes()))
+                .genre(genre) // 💡 장르 객체 연결
+                .venue(venue) // 💡 장소 객체 연결
+                .status(ConcertStatus.UPCOMING) // 💡 기본 상태값 지정해주기
                 .build();
 
         Concert savedConcert = concertRepository.save(concert);
 
-        // 3. 대표 썸네일 저장 (isThumbnail = true)
-        if (dto.getThumbnailUrl() != null && !dto.getThumbnailUrl().isBlank()) {
-            ConcertImg thumbnail = ConcertImg.builder()
-                    .concert(savedConcert)
-                    .imgUrl(dto.getThumbnailUrl())
-                    .isThumbnail(true)
-                    .imgOrder(0) // 썸네일은 순서 0 또는 1
-                    .build();
-            concertImgRepository.save(thumbnail);
-        }
+        // 2. 이미지 정보 저장 (UploadResultDTO 활용)
+        if (dto.getImageDTOs() != null && !dto.getImageDTOs().isEmpty()) {
+            int order = 0;
+            for (ImageUploadDTO imgDto : dto.getImageDTOs()) {
+                // 첫 번째 이미지를 썸네일(true)로 지정하거나 별도 구분 로직 적용 가능
+                boolean isThumb = (order == 0); 
 
-        // 4.다중 상세 이미지 저장 (isThumbnail = false, 반복문 처리)
-        if (dto.getDetailImgUrls() != null && !dto.getDetailImgUrls().isEmpty()) {
-            int order = 1;
-            for (String imgUrl : dto.getDetailImgUrls()) {
-                if (imgUrl != null && !imgUrl.isBlank()) {
-                    ConcertImg detailImg = ConcertImg.builder()
-                            .concert(savedConcert)
-                            .imgUrl(imgUrl)
-                            .isThumbnail(false)
-                            .imgOrder(order++) // 순차적으로 증가
-                            .build();
-                    concertImgRepository.save(detailImg);
-                }
+                ConcertImg concertImg = ConcertImg.builder()
+                        .concert(savedConcert)
+                        .uuid(imgDto.getUuid())
+                        .imgName(imgDto.getFileName())
+                        .path(imgDto.getFolderPath())
+                        .isThumbnail(isThumb)
+                        .imgOrder(order++)
+                        .build();
+
+                concertImgRepository.save(concertImg);
             }
         }
 
@@ -152,6 +180,38 @@ public class ConcertServiceImpl implements ConcertService {
 		// TODO Auto-generated method stub
 		
 	}
-    
+	private String makeFolder(String uploadFolder) {
+	    String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+	    String folderPath = str.replace("/", File.separator);
+	    
+	    File uploadPath = new File(uploadFolder, folderPath);
+	    if (!uploadPath.exists()) {
+	        uploadPath.mkdirs();
+	    }
+	    return folderPath;
+	}
+	private ImageUploadDTO saveFile(MultipartFile multipartFile, String uploadFolder) {
+	    String originalName = multipartFile.getOriginalFilename();
+	    
+	    // IE나 Edge 등 경로가 포함되어 들어오는 경우 파일명만 추출
+	    String fileName = originalName.substring(originalName.lastIndexOf("\\") + 1);
+	    
+	    String uuid = UUID.randomUUID().toString();
+	    
+	    // 날짜 폴더 생성 (예: 2026/06/01)
+	    String folderPath = makeFolder(uploadFolder);
+	    
+	    String saveName = uuid + "_" + fileName;
+	    Path savePath = Paths.get(uploadFolder, folderPath, saveName);
+	    
+	    try {
+	        multipartFile.transferTo(savePath.toFile()); // 실제 파일 저장
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	    
+	    return new ImageUploadDTO(fileName, uuid, folderPath);
+	}
+
 
 }
