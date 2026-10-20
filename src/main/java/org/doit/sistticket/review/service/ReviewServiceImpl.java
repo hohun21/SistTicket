@@ -11,17 +11,19 @@ import org.doit.sistticket.review.entity.Reviews;
 import org.doit.sistticket.review.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.core.sync.RequestBody;
 
 @Service
 @RequiredArgsConstructor
@@ -86,16 +88,19 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	public List<ReviewDTO> getReviewsByConcertId(Long concertId) {
 
+
 	    List<Reviews> result =
 	            reviewRepository.findByConcert_ConcertId(concertId);
 
 	    return result.stream()
 	            .map(entity -> entityToDto(entity))
 	            .collect(Collectors.toList());
+
 	}
 
 	@Override
 	public List<ReviewDTO> getReviewsByMemberId(Long memberId) {
+
 
 	    List<Reviews> result =
 	            reviewRepository.findByMember_MemberId(memberId);
@@ -103,6 +108,7 @@ public class ReviewServiceImpl implements ReviewService {
 	    return result.stream()
 	            .map(entity -> entityToDto(entity))
 	            .collect(Collectors.toList());
+
 	}
 	
 	@Transactional
