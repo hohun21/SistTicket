@@ -55,7 +55,7 @@ public class SecurityConfig {
                                     "{\"redirectUrl\":\""
                                             + (isAdmin
                                             ? "http://localhost:5173/admin"
-                                            : "/")
+                                            : "http://localhost:80")
                                             + "\"}"
                             );
                         })
