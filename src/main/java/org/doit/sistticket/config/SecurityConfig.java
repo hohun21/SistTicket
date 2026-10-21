@@ -27,7 +27,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
      .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/", "/concert/list", "/signup",
-
 						"/api/concert/**","/uploadAjax","/concert/**", "/signup",
                         "/css/**",
                         "/images/**",
@@ -70,7 +69,7 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                                 .authenticationEntryPoint(
                                 (request, response, authException) ->{
-                                    response.sendRedirect("/login");
+                                    response.sendRedirect("http://localhost:5173/member/login");
                                 })
                                 .accessDeniedHandler((request, response, authException) ->{
                                     response.sendRedirect("/access-denied");
