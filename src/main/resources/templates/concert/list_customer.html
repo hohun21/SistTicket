@@ -116,6 +116,12 @@
                                     종료일
                                 </span>
                             </p>
+                            <div class="d-flex align-items-center gap-1 mt-2">
+							    <span class="text-warning fw-bold">★</span>
+							    <span class="fw-bold small" th:text="${concert.ratingAvg != null ? #numbers.formatDecimal(concert.ratingAvg, 1, 1) : '0.0'}">0.0</span>
+							    <span class="text-muted small" th:text="'(' + ${concert.reviewCount != null ? concert.reviewCount : 0} + '개 리뷰)'">(0개 리뷰)</span>
+							</div>
+							<hr>
                             <p class="concert-period"
                                 th:unless="${concert.startDate != null and concert.endDate != null}"
                             >일정 미정</p>
