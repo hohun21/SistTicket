@@ -25,21 +25,20 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors-> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 1. URL별 접근 권한
-            .authorizeHttpRequests(auth -> auth
-     .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/", "/concert/list", "/signup",
-
-						"/api/concert/**","/uploadAjax","/concert/**", "/signup",
-                        "/css/**",
-                        "/images/**",
-                        "/js/**",
-                        "/resources/**",
-                        "/favicon.ico",
-                        "/api/reviews/**"
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/", "/concert/list", "/signup",
+                                "/api/concert/**","/uploadAjax","/concert/**", "/signup",
+                                "/css/**",
+                                "/images/**",
+                                "/js/**",
+                                "/resources/**",
+                                "/favicon.ico",
+                                "/api/reviews/**"
                         ).permitAll()
-                .anyRequest().authenticated())
+                        .anyRequest().authenticated())
                 // 2. 로그인 페이지 설정, 성공 시 url, 로그인 페이지 권한
                 .formLogin(form -> form
                         .loginProcessingUrl("/api/member/login")
@@ -82,21 +81,20 @@ public class SecurityConfig {
                         })
                         .permitAll()
                 )
-
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true))
                 .csrf(csrf -> csrf.disable())
-        // 인증 실패 및 권한 없음 예외
+                // 인증 실패 및 권한 없음 예외
                 .exceptionHandling(exception -> exception
-                                .authenticationEntryPoint(
+                        .authenticationEntryPoint(
                                 (request, response, authException) ->{
                                     response.sendRedirect("/login");
                                 })
-                                .accessDeniedHandler((request, response, authException) ->{
-                                    response.sendRedirect("/access-denied");
-                                })
-                        );
+                        .accessDeniedHandler((request, response, authException) ->{
+                            response.sendRedirect("/access-denied");
+                        })
+                );
         return http.build();
     }
 
@@ -128,6 +126,4 @@ public class SecurityConfig {
 
         return source;
     }
-
-
 }

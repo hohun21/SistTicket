@@ -87,4 +87,6 @@ public interface ConcertService {
 
 
 	Long registerConcert(ConcertRequestDTO dto, List<MultipartFile> imageFiles);
+
+	List<ConcertListResponseDTO> getList();
 }

@@ -23,6 +23,8 @@ import org.doit.sistticket.category.repository.GenreRepository;
 import org.doit.sistticket.category.repository.PerformanceCastRepository;
 import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.category.repository.RoleRepository;
+import org.doit.sistticket.review.entity.Reviews;
+import org.doit.sistticket.review.repository.ReviewRepository;
 import org.doit.sistticket.venue.entity.Venue;
 import org.doit.sistticket.venue.repository.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +76,46 @@ public class ConcertServiceImpl implements ConcertService {
     private PerformanceCastRepository performanceCastRepository; // 캐스팅 조회용
     
     @Autowired
+
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Override
+    public List<ConcertListResponseDTO> getList() {
+        // 1. 모든 콘서트 조회
+        List<Concert> concerts = concertRepository.findAll();
+
+        // 2. 각 콘서트별 썸네일 URL을 조회하여 DTO로 변환
+        return concerts.stream().map(concert -> {
+            String thumbnailUrl = concertImgRepository
+                    .findByConcert_ConcertIdAndIsThumbnail(concert.getConcertId(), true)
+                    .map(ConcertImg::getImgUrl)
+                    .orElse("/images/default.jpg"); // 이미지가 없을 경우 대체 경로
+            
+            // 리뷰 추가 부분
+            ConcertListResponseDTO dto = entityToListDto(concert, thumbnailUrl);
+            
+            List<Reviews> reviewList = reviewRepository.findByConcert_ConcertId(concert.getConcertId());
+            long reviewCount = reviewList.size();
+            double ratingAvg = 0.0;
+            if (reviewCount > 0) {
+            	double sum = 0;
+            	for(Reviews r : reviewList) {
+            		sum += r.getRating();
+            	}
+            	ratingAvg = Math.round((sum / reviewCount) * 10) / 10.0;    	
+            }
+            
+            dto.setRatingAvg(ratingAvg);
+            dto.setReviewCount(reviewCount);
+            
+            return dto;
+            
+        }).collect(Collectors.toList());
+    }
+
 
     @Override
     public Page<ConcertListResponseDTO> getConcertList(ConcertPageRequestDTO requestDTO) {
@@ -88,24 +129,34 @@ public class ConcertServiceImpl implements ConcertService {
                 pageable
         );
 
-        return concertPage.map(concert -> {
-            //
-            String imgUrl = concertImgRepository.findByConcert_ConcertIdAndIsThumbnail(concert.getConcertId(), true)
-                    .map(ConcertImg::getImgUrl)
-                    .orElse(""); // 혹은 기본 이미지 경로
 
+        // 리뷰 수정 부분
+        return concertPage.map(concert -> {
+        	
+        	List<Reviews> reviewList = reviewRepository.findByConcert_ConcertId(concert.getConcertId());
+        	long reviewCount = reviewList.size();
+            double ratingAvg = 0.0;
+            if (reviewCount > 0) {
+            	double sum = 0;
+            	for(Reviews r : reviewList) {
+            		sum += r.getRating();
+            	}
+            	ratingAvg = Math.round((sum / reviewCount) * 10) / 10.0;    	
+            }
+        	  
             return ConcertListResponseDTO.builder()
-                    .concertId(concert.getConcertId())
-                    .concertName(concert.getConcertName())
-                    .genreName(concert.getGenre() != null ? concert.getGenre().getGenreName() : "기타")
-                    .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
-                    .startDate(concert.getStartDate())
-                    .endDate(concert.getEndDate())
-                    .runTimeMinutes(concert.getRunTime() != null ? (long) concert.getRunTime().toMinutes() : 0)
-                    .imgUrl(imgUrl) // 
-                    .build();
+                .concertId(concert.getConcertId())
+                .concertName(concert.getConcertName())
+                .genreName(concert.getGenre() != null ? concert.getGenre().getGenreName() : "기타")
+                .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
+                .startDate(concert.getStartDate())
+                .endDate(concert.getEndDate())
+                .imgUrl("")
+                .runTimeMinutes(concert.getRunTime() != null ? (long) concert.getRunTime().toMinutes() : 0)
+                .ratingAvg(ratingAvg)
+                .reviewCount(reviewCount)
+                .build();
         });
-		        
     }
     
     
