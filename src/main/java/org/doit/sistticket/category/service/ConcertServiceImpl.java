@@ -155,7 +155,7 @@ public class ConcertServiceImpl implements ConcertService {
                 .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
                 .startDate(concert.getStartDate())
                 .endDate(concert.getEndDate())
-
+                .runTimeMinutes(concert.getRunTime().toMinutes()) // 👉 .toMinutes() 추가)
                 .imgUrl(concertImgRepository
                                 .findByConcert_ConcertIdAndIsThumbnail(
                                         concert.getConcertId(), true)

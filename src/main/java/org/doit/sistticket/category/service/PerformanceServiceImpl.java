@@ -1,4 +1,4 @@
-package org.doit.sistticket.category.repository;
+package org.doit.sistticket.category.service;
 
 import org.doit.sistticket.actor.entity.Actor;
 import org.doit.sistticket.actor.repository.ActorRepository;
@@ -7,7 +7,10 @@ import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.PerformanceCast;
 import org.doit.sistticket.category.entity.Performances;
 import org.doit.sistticket.category.entity.Role;
-import org.doit.sistticket.category.service.PerformanceService;
+import org.doit.sistticket.category.repository.ConcertRepository;
+import org.doit.sistticket.category.repository.PerformanceCastRepository;
+import org.doit.sistticket.category.repository.PerformancesRepository;
+import org.doit.sistticket.category.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

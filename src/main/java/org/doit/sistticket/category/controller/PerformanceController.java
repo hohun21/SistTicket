@@ -4,12 +4,15 @@ import java.util.List;
 
 import org.doit.sistticket.actor.entity.Actor;
 import org.doit.sistticket.actor.repository.ActorRepository;
+import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.PerformanceCast;
 import org.doit.sistticket.category.entity.Performances;
 import org.doit.sistticket.category.entity.Role;
+import org.doit.sistticket.category.repository.ConcertRepository;
 import org.doit.sistticket.category.repository.PerformanceCastRepository;
 import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.category.repository.RoleRepository;
+import org.doit.sistticket.category.service.ConcertService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +30,7 @@ public class PerformanceController {
     private final ActorRepository actorRepository; // 배우 리포지토리
     private final PerformancesRepository performancesRepository;
     private final PerformanceCastRepository performanceCastRepository;
+    private final ConcertRepository concertRepository;
 
     @GetMapping("/new")
     public String performanceForm(@PathVariable("concertId") Long concertId, Model model) {
@@ -35,7 +39,9 @@ public class PerformanceController {
         
         // 2. 전체 배우 목록 조회 (배우 선택 셀렉트박스용)
         List<Actor> actors = actorRepository.findAll();
-
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공연입니다."));
+        model.addAttribute("concert", concert); 
         model.addAttribute("concertId", concertId);
         model.addAttribute("roles", roles);       // 배역 목록 전달
         model.addAttribute("actors", actors);     // 배우 목록 전달
@@ -60,7 +66,9 @@ public class PerformanceController {
         // 3. 배역 목록 및 배우 목록 조회
         List<Role> roles = roleRepository.findByConcert_ConcertId(concertId);
         List<Actor> actors = actorRepository.findAll();
-
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공연입니다."));
+        model.addAttribute("concert", concert); 
         model.addAttribute("concertId", concertId);
         model.addAttribute("performance", performance); // 기존 회차 데이터
         model.addAttribute("existingCasts", existingCasts); // 기존 캐스팅 데이터
