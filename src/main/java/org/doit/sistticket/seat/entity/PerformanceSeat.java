@@ -57,6 +57,20 @@ public class PerformanceSeat {
     @JoinColumn(name = "hold_member_id")
     private Members holdMember;
 
+    // 공연 회차와 기본 좌석을 연결한 새 회차별 좌석 생성
+    public static PerformanceSeat create(Performances performance, Seat seat) {
+
+        if (performance == null || seat == null) {
+            throw new IllegalArgumentException("공연 회차와 좌석 정보가 필요합니다.");
+        }
+        PerformanceSeat performanceSeat = new PerformanceSeat();
+        performanceSeat.performance = performance;
+        performanceSeat.seat = seat;
+        performanceSeat.status = "AVAILABLE";
+
+        return performanceSeat;
+    }
+    
     // 현재 좌석을 선점할 수 있는지 확인
     public boolean canHold(LocalDateTime now) {
         if ("AVAILABLE".equals(status)) {
@@ -113,4 +127,5 @@ public class PerformanceSeat {
         this.holdMember = null;
     }
     
+   
 }

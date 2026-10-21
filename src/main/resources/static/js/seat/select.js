@@ -50,21 +50,6 @@ function restoreSavedHold() {
 const $ = id => document.getElementById(id);
 const money = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
 
-const demoSeats = Array.from({ length: 80 }, (_, i) => {
-  const row = Math.floor(i / 10);
-  const grade = row < 2 ? 'S' : [2, 3, 5].includes(row) ? 'A' : 'R';
-
-  return {
-    performanceSeatId: i + 1,
-    seatId: i + 1,
-    rowLabel: String.fromCharCode(65 + row),
-    seatNumber: i % 10 + 1,
-    gradeName: grade,
-    price: grade === 'S' ? 200000 : grade === 'A' ? 150000 : 130000,
-    status: 'AVAILABLE'
-  };
-});
-
 function gradeClass(name) {
   const grade = String(name || '').trim().toUpperCase().replace(/석$/, '');
   return ['S', 'A', 'R'].includes(grade)
@@ -77,27 +62,49 @@ function gradeLabel(name) {
   return grade.endsWith('석') ? grade : `${grade}석`;
 }
 
-function showPerformanceInfo() {
-  if (isDemo) {
-    $('modeNote').textContent = '화면 미리보기 · 예시 정보';
-    $('performanceName').textContent = '뮤지컬 공연 A';
-    $('performanceMeta').textContent =
-      '2026. 11. 01. 오후 7:30 · 공연장 A · 1층 50석 / 2층 30석';
-    $('performanceBadge').textContent = '예시 회차';
-    return;
+async function showPerformanceInfo() {
+  const response = await fetch(
+    `/api/performances/${encodeURIComponent(performanceId)}/seat-info`,
+    { credentials: 'same-origin' }
+  );
+
+  if (response.status === 401 || response.redirected) {
+    throw new Error('로그인 후 다시 열어 주세요.');
   }
 
+  if (!response.ok) {
+    throw new Error(
+      response.status === 404
+        ? '공연 회차 정보를 찾을 수 없습니다.'
+        : '공연 정보를 불러오지 못했습니다.'
+    );
+  }
+
+  if (!(response.headers.get('content-type') || '').includes('json')) {
+    throw new Error('공연 정보 응답 형식이 올바르지 않습니다.');
+  }
+
+  const info = await response.json();
+
+  const date = info.performanceDate
+    ? new Date(info.performanceDate)
+    : null;
+
+  const dateText = date && !Number.isNaN(date.getTime())
+    ? date.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : '공연 일시 미정';
+
   $('modeNote').textContent = '선택한 공연 회차';
-  $('performanceName').textContent =
-    params.get('concertName') || `공연 회차 #${performanceId}`;
-
-  $('performanceMeta').textContent = [
-    params.get('performanceDate'),
-    params.get('venueName'),
-    '1층 50석 / 2층 30석'
-  ].filter(Boolean).join(' · ');
-
-  $('performanceBadge').textContent = `회차 #${performanceId}`;
+  $('performanceName').textContent = info.concertName;
+  $('performanceMeta').textContent =
+    `${dateText} · ${info.venueName || '공연장 미정'}`;
+  $('performanceBadge').textContent = `회차 #${info.performanceId}`;
 }
 
 function message(text, type = '') {
@@ -263,22 +270,39 @@ function renderMap() {
 }
 
 async function loadSeats() {
-if (state.held) {
-  message('먼저 임시 선점을 취소해 주세요.', 'error');
-  return;
-}
-
-message('');
-state.selected.clear();
-showPerformanceInfo();
-
-if (isDemo) {
-    state.seats = demoSeats.map(seat => ({ ...seat }));
-    renderMap();
+  if (state.held) {
+    message('먼저 임시 선점을 취소해 주세요.', 'error');
     return;
   }
 
+  message('');
+  state.selected.clear();
+  state.seats = [];
+
+  // 회차 ID가 없으면 예시 좌석 대신 안내 표시
+  if (!performanceId || !/^[1-9]\d*$/.test(performanceId)) {
+    $('performanceName').textContent = '공연 회차를 선택해 주세요.';
+    $('performanceMeta').textContent = '';
+    $('performanceBadge').textContent = '회차 선택 필요';
+    $('modeNote').textContent = '공연 정보';
+    $('seatMap').textContent = '공연 회차를 선택한 후 좌석을 조회할 수 있습니다.';
+    $('mapDescription').textContent = '';
+
+    renderSummary();
+    message('올바른 공연 회차 ID가 필요합니다.', 'error');
+    return;
+  }
+
+  $('seatMap').textContent = '좌석 정보를 불러오는 중입니다.';
+  $('mapDescription').textContent = '';
+  renderSummary();
+  $('refreshButton').disabled = true;
+
   try {
+    // 공연 정보를 먼저 조회한다.
+    await showPerformanceInfo();
+
+    // 기존 API로 실제 좌석을 조회한다.
     const response = await fetch(
       `/api/performances/${encodeURIComponent(performanceId)}/seats`,
       { credentials: 'same-origin' }
@@ -296,14 +320,26 @@ if (isDemo) {
       );
     }
 
-    state.seats = await response.json();
+    const seats = await response.json();
+
+    if (!Array.isArray(seats)) {
+      throw new Error('좌석 정보 응답 형식이 올바르지 않습니다.');
+    }
+
+    state.seats = seats;
     renderMap();
+
+    if (seats.length === 0) {
+      $('seatMap').textContent = '이 회차에 등록된 좌석이 없습니다.';
+    }
   } catch (error) {
     state.seats = [];
     $('seatMap').textContent = '좌석 정보를 표시할 수 없습니다.';
     $('mapDescription').textContent = '';
     renderSummary();
     message(error.message, 'error');
+  } finally {
+    $('refreshButton').disabled = state.held;
   }
 }
 

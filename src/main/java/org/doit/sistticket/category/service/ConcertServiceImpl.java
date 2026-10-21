@@ -132,9 +132,11 @@ public class ConcertServiceImpl implements ConcertService {
 
         // 리뷰 수정 부분
         return concertPage.map(concert -> {
+
         	 String imgUrl = concertImgRepository.findByConcert_ConcertIdAndIsThumbnail(concert.getConcertId(), true)
                      .map(ConcertImg::getImgUrl)
                      .orElse("");
+
         	List<Reviews> reviewList = reviewRepository.findByConcert_ConcertId(concert.getConcertId());
         	long reviewCount = reviewList.size();
             double ratingAvg = 0.0;
@@ -153,8 +155,15 @@ public class ConcertServiceImpl implements ConcertService {
                 .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
                 .startDate(concert.getStartDate())
                 .endDate(concert.getEndDate())
-                .imgUrl(imgUrl)
-                .runTimeMinutes(concert.getRunTime() != null ? (long) concert.getRunTime().toMinutes() : 0)
+
+                .imgUrl(concertImgRepository
+                                .findByConcert_ConcertIdAndIsThumbnail(
+                                        concert.getConcertId(), true)
+                                .map(ConcertImg::getImgUrl)
+                                .filter(url -> !url.isBlank())
+                                .orElse(null)
+                )
+
                 .ratingAvg(ratingAvg)
                 .reviewCount(reviewCount)
                 .build();

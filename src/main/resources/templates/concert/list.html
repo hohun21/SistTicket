@@ -106,7 +106,15 @@
                                 <span th:text="${#temporals.format(concert.startDate, 'yyyy-MM-dd')}"></span> ~ 
                                 <span th:text="${#temporals.format(concert.endDate, 'yyyy-MM-dd')}"></span>
                             </p>
+
 							<small>러닝타임: <span th:text="${concert.runTimeMinutes + '분'}">120분</span></small>
+
+                            <div class="d-flex align-items-center gap-1 mt-2">
+							    <span class="text-warning fw-bold">★</span>
+							    <span class="fw-bold small" th:text="${concert.ratingAvg != null ? #numbers.formatDecimal(concert.ratingAvg, 1, 1) : '0.0'}">0.0</span>
+							    <span class="text-muted small" th:text="'(' + ${concert.reviewCount != null ? concert.reviewCount : 0} + '개 리뷰)'">(0개 리뷰)</span>
+							</div>
+
                         </div>
                         <div class="card-footer bg-white border-top-0">
                             <a th:href="@{/concert/{id}(id=${concert.concertId})}" class="btn btn-outline-primary w-100">상세보기 및 예매</a>
