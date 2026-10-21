@@ -145,7 +145,6 @@ public class ConcertServiceImpl implements ConcertService {
                 .reviewCount(reviewCount)
                 .build();
         });
-
     }
     
     
