@@ -27,6 +27,8 @@ import org.doit.sistticket.category.repository.ConcertRepository;
 import org.doit.sistticket.category.repository.GenreRepository;
 import org.doit.sistticket.category.repository.PerformanceCastRepository;
 import org.doit.sistticket.category.repository.PerformancesRepository;
+import org.doit.sistticket.review.entity.Reviews;
+import org.doit.sistticket.review.repository.ReviewRepository;
 import org.doit.sistticket.venue.entity.Venue;
 import org.doit.sistticket.venue.repository.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +62,9 @@ public class ConcertServiceImpl implements ConcertService {
 
     @Autowired
     private PerformanceCastRepository performanceCastRepository; // 캐스팅 조회용
+    
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @Override
     public List<ConcertListResponseDTO> getList() {
@@ -72,8 +77,26 @@ public class ConcertServiceImpl implements ConcertService {
                     .findByConcert_ConcertIdAndIsThumbnail(concert.getConcertId(), true)
                     .map(ConcertImg::getImgUrl)
                     .orElse("/images/default.jpg"); // 이미지가 없을 경우 대체 경로
-
-            return entityToListDto(concert, thumbnailUrl);
+            
+            // 리뷰 추가 부분
+            ConcertListResponseDTO dto = entityToListDto(concert, thumbnailUrl);
+            
+            List<Reviews> reviewList = reviewRepository.findByConcert_ConcertId(concert.getConcertId());
+            long reviewCount = reviewList.size();
+            double ratingAvg = 0.0;
+            if (reviewCount > 0) {
+            	double sum = 0;
+            	for(Reviews r : reviewList) {
+            		sum += r.getRating();
+            	}
+            	ratingAvg = Math.round((sum / reviewCount) * 10) / 10.0;    	
+            }
+            
+            dto.setRatingAvg(ratingAvg);
+            dto.setReviewCount(reviewCount);
+            
+            return dto;
+            
         }).collect(Collectors.toList());
     }
 
@@ -90,7 +113,21 @@ public class ConcertServiceImpl implements ConcertService {
                 pageable
         );
 
-        return concertPage.map(concert -> ConcertListResponseDTO.builder()
+        // 리뷰 수정 부분
+        return concertPage.map(concert -> {
+        	
+        	List<Reviews> reviewList = reviewRepository.findByConcert_ConcertId(concert.getConcertId());
+        	long reviewCount = reviewList.size();
+            double ratingAvg = 0.0;
+            if (reviewCount > 0) {
+            	double sum = 0;
+            	for(Reviews r : reviewList) {
+            		sum += r.getRating();
+            	}
+            	ratingAvg = Math.round((sum / reviewCount) * 10) / 10.0;    	
+            }
+        	  
+            return ConcertListResponseDTO.builder()
                 .concertId(concert.getConcertId())
                 .concertName(concert.getConcertName())
                 .genreName(concert.getGenre() != null ? concert.getGenre().getGenreName() : "기타")
@@ -98,7 +135,10 @@ public class ConcertServiceImpl implements ConcertService {
                 .startDate(concert.getStartDate())
                 .endDate(concert.getEndDate())
                 .imgUrl("")
-                .build());
+                .ratingAvg(ratingAvg)
+                .reviewCount(reviewCount)
+                .build();
+        });
     }
     
     

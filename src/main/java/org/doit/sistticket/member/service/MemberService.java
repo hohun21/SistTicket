@@ -1,8 +1,5 @@
 package org.doit.sistticket.member.service;
-
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.util.List;
 import org.doit.sistticket.admin.domain.AdminMemberDTO;
 import org.doit.sistticket.admin.domain.AdminMemberUpdateDTO;
 import org.doit.sistticket.member.domain.FindPasswordRequestDTO;
@@ -14,10 +11,12 @@ import org.doit.sistticket.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +26,7 @@ public class MemberService {
     private final MemberRepository memberrepository;
     private final PasswordEncoder passwordEncoder;
 
+    // 💡 회원 가입 (여기에 이미 status(1)과 비밀번호 암호화가 잘 적용되어 있습니다!)
     @Transactional
     public MemberResponseDTO register(MemberRequestDTO request){
         Members member = Members.builder()
@@ -34,11 +34,12 @@ public class MemberService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
                 .phone(request.getPhone())
-                .status(1)
+                .status(1) 
                 .build();
         Members savedMember = memberrepository.save(member);
         return MemberResponseDTO.from(savedMember);
     }
+
     @Transactional
     public void updateMember(Long memberId, AdminMemberUpdateDTO dto){
         Members member = memberrepository.findById(memberId)
@@ -56,6 +57,7 @@ public class MemberService {
         memberrepository.save(member);
     }
 
+    // 💡 조원분이 추가한 관리자용 전체 회원 조회 메서드
     public List<AdminMemberDTO> findAllAdminMembers() {
         return memberrepository.findAll()
                 .stream()
@@ -69,6 +71,7 @@ public class MemberService {
                 ))
                 .toList();
     }
+
 
     public String findIdByEmailAndPhone(String name, String phone){
         return memberrepository.findIdByNameAndPhone(name, phone);
@@ -107,3 +110,6 @@ public class MemberService {
         return password.toString();
     }
 }
+
+
+

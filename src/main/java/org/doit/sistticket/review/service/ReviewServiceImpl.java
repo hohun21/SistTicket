@@ -123,8 +123,55 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 	}
 
+	@Transactional
+	@Override
+	public void modifyWithImage(ReviewDTO reviewDTO, MultipartFile imageFile, boolean deleteImage) {
+		Reviews review = reviewRepository.findById(reviewDTO.getReviewId())
+				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다."));
+
+		String imgUrl = review.getImgUrl();
+
+		if (deleteImage) {
+			imgUrl = null;
+		}
+		
+		else if (imageFile != null && !imageFile.isEmpty()) {
+			S3Configuration s3Configuration = S3Configuration.builder().chunkedEncodingEnabled(false).build();
+			try (S3Client s3Client = S3Client.builder()
+					.endpointOverride(URI.create(R2_ENDPOINT))
+					.region(Region.of("auto"))
+					.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(R2_ACCESS_KEY, R2_SECRET_KEY)))
+					.serviceConfiguration(s3Configuration)
+					.build()) {
+
+				String originalFileName = imageFile.getOriginalFilename();
+				String savedFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+				String objectKey = "reviews/" + savedFileName;
+
+				PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+						.bucket(R2_BUCKET)
+						.key(objectKey)
+						.contentType(imageFile.getContentType())
+						.build();
+
+				s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(imageFile.getInputStream(), imageFile.getSize()));
+				imgUrl = R2_PUBLIC_URL + "/" + objectKey;
+
+			} catch (Exception e) {
+				log.error("S3 리뷰 이미지 수정 업로드 중 오류 발생: " + e.getMessage());
+			}
+		}
+
+		review.setText(reviewDTO.getText());
+		review.setRating(reviewDTO.getRating());
+		review.setImgUrl(imgUrl);
+		
+		reviewDTO.setImgUrl(imgUrl);
+	}
+	
 	@Override
 	public void remove(Long reviewId) {
 		reviewRepository.deleteById(reviewId);
 	}
+
 }

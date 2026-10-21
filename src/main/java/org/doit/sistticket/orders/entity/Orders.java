@@ -48,6 +48,12 @@ public class Orders {
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+    
+    @Column(name = "hold_token", nullable = false, length = 36)
+    private String holdToken;
+    
+    @Column(name = "hold_expires_at", nullable = false)
+    private LocalDateTime holdExpiresAt;
 
     // JPA
     protected Orders() {
@@ -58,11 +64,15 @@ public class Orders {
     		Members members,
     		Performances performances,
     		String orderNo,
-    		BigDecimal totalAmount) {
+    		BigDecimal totalAmount,
+    		String holdToken,
+    		LocalDateTime holdExpiresAt) {
     	this.member = members;
     	this.performance = performances;
     	this.orderNo = orderNo;
     	this.totalAmount = totalAmount;
+    	this.holdToken = holdToken;
+    	this.holdExpiresAt = holdExpiresAt;
     }
     
 } // class

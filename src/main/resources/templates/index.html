@@ -34,14 +34,16 @@
       <li class="welcome-message">
         <span sec:authentication="principal.member.name"></span>님 반갑습니다.
       </li>
-      <!-- ADMIN 권한 로그인 시 관리자 콘솔 표시 -->
+      
+      <!-- 💡 ADMIN 권한 로그인 시 관리자 콘솔 표시 -->
       <li sec:authorize="hasRole('ROLE_ADMIN')">
         <a th:href="@{http://localhost:5173/admin}">관리자 콘솔</a>
       </li>
-      <!-- ADMIN 권한이 없으면 마이페이지 -->
+      <!-- 💡 ADMIN 권한이 없으면 React 마이페이지로 이동 (요청하신 부분 반영) -->
       <li sec:authorize="!hasRole('ROLE_ADMIN')">
-        <a th:href="@{/mypage}">마이페이지</a>
+        <a href="http://localhost:5173/mypage">마이페이지</a>
       </li>
+
       <li>
         <form th:action="@{/logout}" method="post">
           <button type="submit" class="logout-button btn btn-primary">
@@ -136,7 +138,6 @@
     </div>
   </section>
 </main>
-
 
 </body>
 <footer>
