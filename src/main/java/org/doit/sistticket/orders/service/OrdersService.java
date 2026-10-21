@@ -58,6 +58,12 @@ public class OrdersService {
 		if (performanceSeatIds == null || performanceSeatIds.isEmpty()) {
 			throw new IllegalArgumentException("선택한 좌석이 없습니다.");
 		}
+		
+		// 한 주문당 최대 5개 좌석까지 허용
+		if (performanceSeatIds.size() > 5) {
+		    throw new IllegalArgumentException(
+		            "한 번에 최대 5개 좌석까지만 예매할 수 있습니다.");
+		}
 
 		if (performanceSeatIds.stream().anyMatch(id -> id == null)) {
 			throw new IllegalArgumentException("좌석 ID가 올바르지 않습니다.");
@@ -106,7 +112,6 @@ public class OrdersService {
 		    }
 		}
 		
-
 		// 4. 요청 좌석 목록과 토큰에 연결된 좌석 목록 비교
 		List<Long> requestedIds = performanceSeatIds.stream()
 				.sorted()
@@ -164,12 +169,17 @@ public class OrdersService {
 		// 7. 주문 생성
 		String orderNo = "ORD-" + UUID.randomUUID();
 
-		Orders order = new Orders(
-				member,
-				performance,
-				orderNo,
-				totalAmount
-				);
+		// 주문 생성 시점의 홀드 토큰과 만료 시각을 주문에 보관
+        LocalDateTime holdExpiresAt = heldSeats.get(0).getHoldExpiresAt();
+
+        Orders order = new Orders(
+                        member,
+                        performance,
+                        orderNo,
+                        totalAmount,
+                        holdToken,
+                        holdExpiresAt
+        );
 
 		Orders savedOrder = ordersRepository.save(order);
 
@@ -202,67 +212,85 @@ public class OrdersService {
 		paymentsRepository.save(payment);
 
 		return savedOrder;
-	}
+	} // createOrder
 
-	@Transactional
-	public void expireOrder(Long ordersId) {
+    @Transactional
+    public void expireOrder(Long ordersId) {
 
-		List<OrdersDetail> details =
-				ordersDetailRepository.findByOrders_OrdersId(ordersId);
+            // 1. 주문 조회
+            Orders order = ordersRepository.findByIdForUpdate(ordersId)
+                            .orElseThrow(() ->
+                                            new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
 
-		if (details.isEmpty()) {
-			throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
-		}
+            // 2. 주문 상세 조회
+            List<OrdersDetail> details =
+                            ordersDetailRepository.findByOrders_OrdersId(ordersId);
 
-		LocalDateTime now = LocalDateTime.now();
+            if (details.isEmpty()) {
+                    throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
+            }
 
-		// 모든 좌석의 만료 여부를 먼저 확인
-		List<PerformanceSeat> seats = new ArrayList<>();
+            // 3. 결제 성공 여부 확인
+            List<Payments> payments =
+                            paymentsRepository.findByOrders_OrdersId(ordersId);
 
-		for (OrdersDetail detail : details) {
+            boolean hasSuccessfulPayment = payments.stream()
+                            .anyMatch(payment ->
+                                            payment.getStatus() == PaymentStatus.SUCCESS);
 
-			if (detail.getStatus() != OrdersDetailStatus.PENDING) {
-				throw new IllegalStateException(
-						"만료 처리할 수 없는 주문 상세 상태입니다.");
-			}
+            if (hasSuccessfulPayment) {
+                    throw new IllegalStateException(
+                                    "결제가 완료된 주문은 만료 처리할 수 없습니다.");
+            }
 
-			PerformanceSeat seat = performanceSeatRepository
-					.findByIdForUpdate(
-							detail.getPerformanceSeat().getPerformanceSeatId())
-					.orElseThrow(() ->
-					new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
+            // 4. 주문 상세 상태 확인
+            for (OrdersDetail detail : details) {
+                    if (detail.getStatus() != OrdersDetailStatus.PENDING) {
+                            throw new IllegalStateException(
+                                            "만료 처리할 수 없는 주문 상세 상태입니다.");
+                    }
+            }
 
-			if (!"HELD".equals(seat.getStatus())
-					|| seat.getHoldExpiresAt() == null
-					|| seat.getHoldExpiresAt().isAfter(now)) {
-				throw new IllegalStateException(
-						"아직 만료되지 않았거나 점유 상태가 올바르지 않습니다.");
-			}
+            // 5. 주문에 저장된 최초 홀드 정보 확인
+            LocalDateTime now = LocalDateTime.now();
 
-			seats.add(seat);
-		}
+            if (order.getHoldToken() == null
+                            || order.getHoldToken().isBlank()
+                            || order.getHoldExpiresAt() == null
+                            || order.getHoldExpiresAt().isAfter(now)) {
+                    throw new IllegalStateException(
+                                    "홀드 토큰이 없거나 아직 만료되지 않은 주문입니다.");
+            }
 
-		String holdToken = performanceSeatStatusService.getHoldToken(details);
-		
-		boolean released = performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
-		
-		if(!released) {
-			throw new IllegalStateException("좌석 선점을 해제하지 못했습니다.");
-		}
-		
-		for(OrdersDetail detail : details) {
-			detail.expire();
-		}
+            // 6. 주문에 저장된 토큰으로 좌석 홀드 해제
+            boolean released = performanceSeatStatusService.releaseHeldSeats(
+                            ordersId,
+                            order.getHoldToken());
 
-		performanceSeatRepository.saveAll(seats);
-		ordersDetailRepository.saveAll(details);
-	} // expireOrder
+            if (!released) {
+                    throw new IllegalStateException(
+                                    "좌석 선점을 해제하지 못했습니다.");
+            }
+
+            // 7. 주문 상세 만료 처리
+            for (OrdersDetail detail : details) {
+                    detail.expire();
+            }
+
+            ordersDetailRepository.saveAll(details);
+    } // expireOrder
 
 	@Transactional
 	public void cancelOrder(Long ordersId) {
 
+		// 주문 행 잠금
+		Orders order = ordersRepository.findByIdForUpdate(ordersId)
+		        .orElseThrow(() ->
+		                new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
+
+		// 주문 상세 조회
 		List<OrdersDetail> details =
-				ordersDetailRepository.findByOrders_OrdersId(ordersId);
+		        ordersDetailRepository.findByOrders_OrdersId(ordersId);
 
 		if (details.isEmpty()) {
 			throw new IllegalArgumentException("주문 상세 정보가 없습니다.");
@@ -289,38 +317,55 @@ public class OrdersService {
 			}
 		}
 
-		// 3. 좌석을 잠그고 상태 확인
-		List<PerformanceSeat> seats = new ArrayList<>();
+		// 3. 주문 상세에서 좌석 ID 추출
+		List<Long> seatIds = details.stream()
+		        .map(detail ->
+		                detail.getPerformanceSeat().getPerformanceSeatId())
+		        .sorted()
+		        .toList();
 
-		for (OrdersDetail detail : details) {
-			PerformanceSeat seat = performanceSeatRepository
-					.findByIdForUpdate(
-							detail.getPerformanceSeat().getPerformanceSeatId())
-					.orElseThrow(() ->
-					new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
+		// 4. 주문의 공연 ID 확인
+		Long performanceId = order.getPerformance().getPerformanceId();
 
-			if (!"HELD".equals(seat.getStatus())) {
-				throw new IllegalStateException(
-						"결제 대기 상태가 아닌 좌석은 취소 처리할 수 없습니다.");
-			}
+		// 5. 좌석을 ID 순서로 잠금 조회
+		List<PerformanceSeat> seats =
+		        performanceSeatRepository.findSeatsForHold(
+		                performanceId, seatIds);
 
-			seats.add(seat);
+		if (seats.size() != seatIds.size()) {
+		    throw new IllegalStateException(
+		            "주문에 해당하는 좌석을 모두 찾을 수 없습니다.");
 		}
 
-		String holdToken = performanceSeatStatusService.getHoldToken(details);
-		
-		boolean released = performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
-		
-		if(!released) {
-			throw new IllegalStateException("좌석 선점을 해제하지 못했습니다.");
+		// 6. 좌석 상태 확인
+		for (PerformanceSeat seat : seats) {
+		    if (!"HELD".equals(seat.getStatus())) {
+		        throw new IllegalStateException(
+		                "결제 대기 상태가 아닌 좌석은 취소 처리할 수 없습니다.");
+		    }
 		}
-		
+
+		// 주문 생성 당시 저장한 홀드 토큰 사용
+		String holdToken = order.getHoldToken();
+
+		if (holdToken == null || holdToken.isBlank()) {
+		    throw new IllegalStateException("주문의 홀드 토큰이 없습니다.");
+		}
+
+		boolean released =
+		        performanceSeatStatusService.releaseHeldSeats(ordersId, holdToken);
+
+		if (!released) {
+		    throw new IllegalStateException("좌석 선점을 해제하지 못했습니다.");
+		}
+				
 		for(OrdersDetail detail : details) {
 			detail.cancel();
 		}
 
 		performanceSeatRepository.saveAll(seats);
 		ordersDetailRepository.saveAll(details);
+		
 	} // cancelOrder
 
 	public OrdersResponseDTO getOrderByOrderNo(String orderNo, Long memberId) {

@@ -25,9 +25,4 @@ public class MemberController {
         return "member/signup";
     }
     
-    @PostMapping("/signup")
-    public String signup(MemberDTO memberdto){
-        this.memberservice.signup(memberdto);
-        return "redirect:/login";
-    }
 }
