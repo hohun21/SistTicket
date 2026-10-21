@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface OrdersDetailRepository extends JpaRepository<OrdersDetail, Long> {
-
+	
 	// 주문에 포함된 상세항목 조회.
 	List<OrdersDetail> findByOrders_OrdersId(Long ordersId);
 	
@@ -23,4 +23,17 @@ public interface OrdersDetailRepository extends JpaRepository<OrdersDetail, Long
 		boolean hasOrderForSeats(
 		        @Param("seatIds") List<Long> seatIds,
 		        @Param("status") OrdersDetailStatus status);
-}
+	
+	// 주문의 모든 상세 항목이 PENDING인지 확인
+	@Query("""
+			SELECT case when count(d) = count(
+				case when d.status = :status then 1 end
+			) then true else false end
+			FROM OrdersDetail d
+			WHERE d.orders.ordersId = :ordersId
+			""")
+	boolean allDetailsHaveStatus(
+			@Param("ordersId") Long ordersId,
+			@Param("status") OrdersDetailStatus status);
+	
+} // 리파지토리

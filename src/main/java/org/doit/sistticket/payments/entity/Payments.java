@@ -40,7 +40,7 @@ public class Payments {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private PaymentStatus status;
 
     @Column(name = "paid_at")
@@ -78,6 +78,15 @@ public class Payments {
     // 결제 실패 처리
     public void failPayment() {
     	this.status = PaymentStatus.FAILED;
+    }
+    
+    // 
+    public void cancelPayment(LocalDateTime cancelledAt) {
+    	if(this.status != PaymentStatus.SUCCESS) {
+    		throw new IllegalStateException("성공한 결제만 취소할 수 있습니다.");
+    	}
+    	this.status = PaymentStatus.CANCELLED;
+    	this.cancelledAt = cancelledAt;
     }
     
     
