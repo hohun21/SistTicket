@@ -27,17 +27,22 @@ public class SecurityConfig {
         http
                 .cors(cors-> {})
                 // 1. URL별 접근 권한
-            .authorizeHttpRequests(auth -> auth
-     .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/", "/concert/list", "/signup",
-
-						"/api/concert/**","/uploadAjax","/concert/**", "/signup",
-                        "/css/**",
-                        "/images/**",
-                        "/js/**",
-                        "/resources/**",
-                        "/favicon.ico",
-                        "/api/reviews/**"
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/",
+                                "/concert/list",
+                                "/signup",
+                                "/api/member/**",  // 회원가입 API 추가
+                                "/api/concert/**",
+                                "/uploadAjax",
+                                "/concert/**",
+                                "/css/**",
+                                "/images/**",
+                                "/js/**",
+                                "/resources/**",
+                                "/favicon.ico",
+                                "/api/reviews/**"
                         ).permitAll()
                 .anyRequest().authenticated())
                 // 2. 로그인 페이지 설정, 성공 시 url, 로그인 페이지 권한
@@ -56,7 +61,7 @@ public class SecurityConfig {
                                     "{\"redirectUrl\":\""
                                             + (isAdmin
                                             ? "http://localhost:5173/admin"
-                                            : "/")
+                                            : "http://localhost:80")
                                             + "\"}"
                             );
                         })

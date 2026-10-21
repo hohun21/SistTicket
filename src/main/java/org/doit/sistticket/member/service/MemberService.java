@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.doit.sistticket.admin.domain.AdminMemberDTO;
 import org.doit.sistticket.admin.domain.AdminMemberUpdateDTO;
+import org.doit.sistticket.member.domain.FindPasswordRequestDTO;
 import org.doit.sistticket.member.domain.MemberDTO;
 import org.doit.sistticket.member.domain.MemberRequestDTO;
 import org.doit.sistticket.member.domain.MemberResponseDTO;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,5 +68,42 @@ public class MemberService {
                         member.getStatus()
                 ))
                 .toList();
+    }
+
+    public String findIdByEmailAndPhone(String name, String phone){
+        return memberrepository.findIdByNameAndPhone(name, phone);
+    }
+    @Transactional
+    public String resetPasswordWithTemporary(FindPasswordRequestDTO requestDTO){
+        Members member = memberrepository.
+                findByEmailAndNameAndPhone(
+                        requestDTO.email(),
+                        requestDTO.name(),
+                        requestDTO.phone()
+                ).orElseThrow(()->
+                        new IllegalArgumentException("회원 정보가 " +
+                                "일치하지 않습니다."));
+        String temporaryPassword = generateTemporaryPassword();
+        String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+        member.setPassword(encodedPassword);
+        memberrepository.save(member);
+
+        return temporaryPassword;
+
+    }
+
+    private String generateTemporaryPassword() {
+        String characters ="ABCDEFGHJKLMNPQRSTUVWXYZ"
+                + "abcdefghijkmnopqrstuvwxyz"
+                + "23456789"
+                + "!@#$%";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+        for (int i = 0; i < 12; i++) {
+            int index = random.nextInt(characters.length());
+            password.append(characters.charAt(index));
+        }
+        return password.toString();
     }
 }
