@@ -19,6 +19,7 @@ public class ReviewDTO {
 	
 	private Long reviewId;
 	private Long memberId;
+	private String memberName;
 	private Long concertId;
 	private String concertTitle;
 	private Integer rating;

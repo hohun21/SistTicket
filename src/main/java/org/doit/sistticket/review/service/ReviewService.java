@@ -46,6 +46,7 @@ public interface ReviewService {
 		ReviewDTO reviewDTO = ReviewDTO.builder()
 				.reviewId(entity.getReviewId())
 				.memberId(entity.getMember().getMemberId())
+				.memberName(entity.getMember().getName())
 				.concertId(entity.getConcert().getConcertId())
 				.rating(entity.getRating())
 				.text(entity.getText())

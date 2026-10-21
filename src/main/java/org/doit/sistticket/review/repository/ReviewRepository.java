@@ -18,7 +18,7 @@ public interface ReviewRepository extends JpaRepository<Reviews, Long>{
 	
 	@Query("""
 	       SELECT new org.doit.sistticket.review.dto.ReviewDTO(
-	           r.reviewId, r.member.memberId, r.concert.concertId, r.concert.concertName,
+	           r.reviewId, r.member.memberId, r.member.name, r.concert.concertId, r.concert.concertName,
 	           r.rating, r.text, r.imgUrl, r.createdAt, r.updatedAt
 	       )
 	       FROM Reviews r
