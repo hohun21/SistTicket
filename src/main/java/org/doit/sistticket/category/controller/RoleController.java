@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/concert/{concertId}/roles")
+@RequestMapping("/settings/concert/{concertId}/roles")
 @RequiredArgsConstructor
 public class RoleController {
 
@@ -24,6 +24,6 @@ public class RoleController {
         List<Role> roles = roleService.getRolesByConcert(concertId);
         model.addAttribute("concertId", concertId);
         model.addAttribute("roles", roles);
-        return "concert/roleForm"; // 배역 관리 HTML
+        return "settings/concert/roleForm"; // 배역 관리 HTML
     }
 }

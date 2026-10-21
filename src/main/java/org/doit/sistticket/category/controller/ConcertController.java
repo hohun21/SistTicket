@@ -30,6 +30,18 @@ public class ConcertController {
 	
 	
 
+	@GetMapping("/settings/concert")
+	public String adminConcertList(
+	        @ModelAttribute("searchDTO") ConcertPageRequestDTO searchDTO,
+	        Model model) {
+	    
+	    Page<ConcertListResponseDTO> concertList = concertService.getConcertList(searchDTO);
+	    model.addAttribute("concertList", concertList);
+	    
+	    return "settings/concert";
+	}
+	
+	
 	@GetMapping("/concert/list")
 	public String concertList(
 	        @ModelAttribute("searchDTO") ConcertPageRequestDTO searchDTO,
@@ -54,7 +66,20 @@ public class ConcertController {
     }
     
     
-    @GetMapping("/concert/new")
+    // 관리자 상세 보기 페이지 요청
+    @GetMapping("settings/concert/{id}")
+    public String adminconcertDetail(@PathVariable("id") Long concertId, Model model) {
+    	 log.info("==> 콘서트 상세보기: " + concertId);
+        // ConcertService를 통해 콘서트 + 회차 + 캐스팅이 모두 담긴 상세 DTO
+        ConcertDetailResponseDTO concertDetail = concertService.getDetail(concertId);
+        
+        model.addAttribute("concert", concertDetail);
+        
+        return "settings/concert/detail"; // src/main/resources/templates/concert/detail.html
+    }
+    
+    
+    @GetMapping("settings/concert/new")
     public String concertForm(Model model) {
         log.info("==> 관리자 콘서트 등록 폼 페이지 요청");
         
@@ -63,11 +88,11 @@ public class ConcertController {
         model.addAttribute("venues", venueService.getVenueList()); // 또는 venueRepository.findAll()
         model.addAttribute("genres", genreService.getGenreList()); // 또는 genreRepository.findAll()
         
-        return "concert/concertForm"; // templates/admin/concert/form.html
+        return "settings/concert/concertForm"; // templates/admin/concert/form.html
     }
     
     // 2. 수정 폼 (기존 데이터 세팅)
-    @GetMapping("/concert/edit/{id}")
+    @GetMapping("settings/concert/edit/{id}")
     public String editForm(@PathVariable("id") Long concertId, Model model) {
         ConcertDetailResponseDTO concert = concertService.getDetail(concertId);
         
@@ -75,6 +100,6 @@ public class ConcertController {
         // 2. 셀렉트박스용 장소/장르 목록
         model.addAttribute("venues", venueService.getVenueList());
         model.addAttribute("genres", genreService.getGenreList());
-        return "concert/concertForm";
+        return "settings/concert/concertForm";
     }
 }

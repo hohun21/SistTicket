@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/concert/{concertId}/performance")
+@RequestMapping("/settings/concert/{concertId}/performance")
 @RequiredArgsConstructor
 public class PerformanceController {
 
@@ -40,7 +40,7 @@ public class PerformanceController {
         model.addAttribute("roles", roles);       // 배역 목록 전달
         model.addAttribute("actors", actors);     // 배우 목록 전달
         
-        return "concert/performanceForm";
+        return "settings/concert/performanceForm";
     }
     
  // 회차 수정 폼 페이지 (Update)
@@ -67,6 +67,6 @@ public class PerformanceController {
         model.addAttribute("roles", roles);
         model.addAttribute("actors", actors);
         
-        return "concert/performanceForm"; // 등록과 같은 폼 사용!
+        return "settings/concert/performanceForm"; // 등록과 같은 폼 사용!
     }
 }

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회차 및 캐스팅 등록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>콘서트 회차 및 캐스팅 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <!-- 수정일 때는 회차 ID가 들어가고, 등록일 때는 빈 칸이 됨 -->
+    <h2 th:text="${performance != null ? '콘서트 회차 및 캐스팅 수정' : '콘서트 회차 및 캐스팅 등록'}">콘서트 회차 및 캐스팅 등록</h2>
+    
+    <input type="hidden" id="concertId" th:value="${concertId}">
+    <input type="hidden" id="performanceId" th:value="${performance != null ? performance.performanceId : ''}">
+
+    <div class="card p-4 shadow-sm mb-4">
+        <h4>회차 정보 입력</h4>
+        
+        <!-- 공연 일시 -->
+        <div class="mb-3">
+            <label class="form-label">공연 일시</label>
+            <input type="datetime-local" id="performanceDate" class="form-control" 
+                   th:value="${performance != null and performance.performanceDate != null ? #temporals.format(performance.performanceDate, 'yyyy-MM-dd''T''HH:mm') : ''}" required>
+        </div>
+        
+        <!-- 예매 시작일 -->
+        <div class="mb-3">
+            <label class="form-label">예매 시작일</label>
+            <input type="datetime-local" id="bookingStart" class="form-control" 
+                   th:value="${performance != null and performance.bookingStart != null ? #temporals.format(performance.bookingStart, 'yyyy-MM-dd''T''HH:mm') : ''}">
+        </div>
+        
+        <!-- 예매 마감일 -->
+        <div class="mb-3">
+            <label class="form-label">예매 마감일</label>
+            <input type="datetime-local" id="bookingEnd" class="form-control" 
+                   th:value="${performance != null and performance.bookingEnd != null ? #temporals.format(performance.bookingEnd, 'yyyy-MM-dd''T''HH:mm') : ''}">
+        </div>
+        
+        <!-- 회차 상태 (중복 제거 및 수정 시 기존 값 자동 선택) -->
+        <div class="mb-3">
+            <label class="form-label">회차 상태</label>
+            <select id="status" class="form-select">
+                <option value="UPCOMING" th:selected="${performance != null and performance.status.name() == 'UPCOMING'}">예매예정</option>
+                <option value="ONGOING" th:selected="${performance != null and performance.status.name() == 'ONGOING'}">예매중/공연중</option>
+                <option value="FINISHED" th:selected="${performance != null and performance.status.name() == 'FINISHED'}">종료됨</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 배역별 배우 캐스팅 매핑 영역 -->
+    <div class="card p-4 shadow-sm mb-4">
+        <h4>캐스팅 설정 (배역별 배우 매칭)</h4>
+        <div id="castingContainer">
+            <!-- 이 콘서트에 등록된 배역 목록 반복 -->
+            <div th:each="role : ${roles}" class="row mb-3 casting-row" th:data-role-id="${role.roleId}">
+                <div class="col-md-4">
+                    <strong th:text="${role.roleName}">배역 이름</strong>
+                    <p class="text-muted small" th:text="${role.description}">배역 설명</p>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">출연 배우 선택</label>
+                    <select class="form-select actor-select">
+                        <option value="">-- 배우 선택 --</option>
+                        <!-- 전체 배우 목록 옵션 -->
+                        <option th:each="actor : ${actors}" 
+                                th:value="${actor.actorId}" 
+                                th:text="${actor.actorName}">배우 이름</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-primary w-100 py-2" onclick="submitPerformance()">저장하기</button>
+</div>
+
+<!-- 수정 시 기존에 캐스팅되었던 배우들을 셀렉트박스에 자동으로 꽂아주는 스크립트 -->
+<script th:inline="javascript">
+    window.onload = function() {
+        const existingCasts = /*[[${existingCasts}]]*/ [];
+        if (existingCasts && existingCasts.length > 0) {
+            const castingRows = document.getElementsByClassName('casting-row');
+            for (let row of castingRows) {
+                const roleId = parseInt(row.getAttribute('data-role-id'));
+                const selectTag = row.querySelector('.actor-select');
+
+                // 해당 배역(roleId)에 매핑되어 있던 캐스팅 찾기
+                const matchedCast = existingCasts.find(c => c.role.roleId === roleId);
+                if (matchedCast && matchedCast.actor) {
+                    selectTag.value = matchedCast.actor.actorId;
+                }
+            }
+        }
+    };
+
+    function submitPerformance() {
+        const concertId = document.getElementById('concertId').value;
+        const performanceId = document.getElementById('performanceId').value;
+        const performanceDate = document.getElementById('performanceDate').value;
+        const bookingStart = document.getElementById('bookingStart').value;
+        const bookingEnd = document.getElementById('bookingEnd').value;
+        const status = document.getElementById('status').value;
+
+        if (!performanceDate) {
+            alert("공연 일시는 필수 입력입니다.");
+            return;
+        }
+
+        // 캐스팅 정보 수집
+        const castingRows = document.getElementsByClassName('casting-row');
+        const casts = [];
+
+        for (let row of castingRows) {
+            const roleId = row.getAttribute('data-role-id');
+            const actorId = row.querySelector('.actor-select').value;
+
+            if (actorId) {
+                casts.push({
+                    roleId: parseInt(roleId),
+                    actorId: parseInt(actorId)
+                });
+            }
+        }
+
+        const requestData = {
+            performanceDate: performanceDate,
+            bookingStart: bookingStart ? bookingStart : null,
+            bookingEnd: bookingEnd ? bookingEnd : null,
+            status: status,
+            casts: casts
+        };
+
+        const isEdit = performanceId ? true : false;
+        const url = isEdit ? `/api/concert/${concertId}/performance/${performanceId}` : `/api/concert/${concertId}/performance`;
+        const method = isEdit ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert(isEdit ? "회차가 수정되었습니다!" : "회차가 등록되었습니다!");
+                window.location.href = `/settings/concert/${concertId}`;
+            } else {
+                throw new Error("처리에 실패했습니다.");
+            }
+        })
+        .catch(error => {
+            alert(error.message);
+            console.error("Error:", error);
+        });
+    }
+</script>
+</body>
+</html>
+</body>
+</html>

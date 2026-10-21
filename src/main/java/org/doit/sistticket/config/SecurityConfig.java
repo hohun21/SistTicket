@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/", "/concert/list", "/signup",
                                 "/api/concert/**","/uploadAjax","/concert/**", "/signup",
+                                "/settings/**", //관리자용이라 지울거임!!!!
                                 "/css/**",
                                 "/images/**",
                                 "/js/**",
