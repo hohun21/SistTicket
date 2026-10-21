@@ -97,7 +97,13 @@ public class ConcertServiceImpl implements ConcertService {
                 .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "장소 미정")
                 .startDate(concert.getStartDate())
                 .endDate(concert.getEndDate())
-                .imgUrl("")
+                .imgUrl(concertImgRepository
+                                .findByConcert_ConcertIdAndIsThumbnail(
+                                        concert.getConcertId(), true)
+                                .map(ConcertImg::getImgUrl)
+                                .filter(url -> !url.isBlank())
+                                .orElse(null)
+                )
                 .build());
     }
     

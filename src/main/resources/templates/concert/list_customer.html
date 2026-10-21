@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>공연 목록 | SIST TICKET</title>
+
+    <link rel="stylesheet" th:href="@{/css/concert/list_customer.css}">
+</head>
+<body class="concert-page">
+
+    <!-- 상단 제목 + 검색 필터 -->
+    <header class="catalog-hero">
+        <div class="catalog-container">
+            <a class="catalog-brand" th:href="@{/}">SIST TICKET</a>
+            <div class="hero-intro">
+                <p class="hero-eyebrow">CONCERT &amp; MUSICAL</p>
+                <h1>어떤 무대를 만나볼까요?</h1>
+            </div>
+
+            <form class="search-form" th:action="@{/concert/list}" method="get" role="search">
+                <input type="hidden" name="genreId" th:value="${searchDTO.genreId}">
+                <input type="hidden" name="size" th:value="${searchDTO.size}">
+
+                <label class="search-field">
+                    <span>검색 조건</span>
+                    <select name="type">
+                        <option value="nv" th:selected="${searchDTO.type == 'nv'}">전체</option>
+                        <option value="n" th:selected="${searchDTO.type == 'n'}">공연명</option>
+                        <option value="v" th:selected="${searchDTO.type == 'v'}">공연장</option>
+                    </select>
+                </label>
+
+                <label class="search-field">
+                    <span>검색어</span>
+                    <input type="search"
+                        name="searchKeyword"
+                        placeholder="공연명 또는 공연장을 입력하세요"
+                        th:value="${searchDTO.searchKeyword}"
+                    >
+                </label>
+                <button class="search-submit" type="submit">검색</button>
+                
+                <a class="search-reset" th:href="@{/concert/list(
+                        genreId=${searchDTO.genreId}, size=${searchDTO.size} )}">초기화</a>
+            </form>
+        </div>
+    </header>
+
+    <!-- 왼쪽 장르 메뉴 / 오른쪽 공연 목록 -->
+    <main class="catalog-container catalog-layout">
+
+        <aside class="genre-sidebar">
+            <h2>장르별 보기</h2>
+
+            <nav class="genre-nav" aria-label="공연 장르">
+
+                <a class="genre-link"
+                    th:classappend="${searchDTO.genreId == null} ? 'is-active' : ''"
+                    th:attr="aria-current=${searchDTO.genreId == null ? 'page' : null}"
+                    th:href="@{/concert/list( type=${searchDTO.type},
+                        searchKeyword=${searchDTO.searchKeyword}, size=${searchDTO.size}
+                    )}"
+                >전체보기</a>
+
+                <a th:each="genre : ${genres}" class="genre-link"
+                    th:classappend="${searchDTO.genreId == genre.genreId} ? 'is-active' : ''"
+                    th:attr="aria-current=${searchDTO.genreId == genre.genreId ? 'page' : null}"
+                    th:href="@{/concert/list(
+                        genreId=${genre.genreId},
+                        type=${searchDTO.type},
+                        searchKeyword=${searchDTO.searchKeyword},
+                        size=${searchDTO.size}
+                    )}"
+                    th:text="${genre.genreName}"
+                >장르</a>
+            </nav>
+        </aside>
+
+        <section class="concert-results" aria-labelledby="results-title">
+
+            <div class="results-heading">
+                <h2 id="results-title">공연 목록</h2>
+                <p> 총 <strong th:text="${concertList.totalElements}">0</strong>
+                    개 공연
+                </p>
+            </div>
+
+            <!-- 공연 카드 -->
+            <div class="concert-grid" th:if="${!concertList.isEmpty()}">
+                <article class="concert-card" th:each="concert : ${concertList.content}">
+                    <a class="concert-link" th:href="@{/concert/{id}(id=${concert.concertId})}">
+                        <div class="concert-poster">
+                            <img th:if="${!#strings.isEmpty(concert.imgUrl)}"
+                                th:src="${concert.imgUrl}"
+                                th:alt="${concert.concertName + ' 포스터'}"
+                                loading="lazy">
+                            <div class="poster-placeholder" th:if="${#strings.isEmpty(concert.imgUrl)}">
+                                <span>SIST TICKET</span>
+                                <p>포스터 준비 중</p>
+                            </div>
+                        </div>
+
+                        <div class="concert-card-body">
+                            <span class="genre-tag" th:text="${concert.genreName}">장르</span>
+                            <h3 class="concert-title" th:text="${concert.concertName}">공연 제목</h3>
+                            <p class="concert-venue" th:text="${concert.venueName}">공연장</p>
+                            <p class="concert-period"
+                                th:if="${concert.startDate != null and concert.endDate != null}">
+                                <span th:text="${#temporals.format(concert.startDate, 'yyyy.MM.dd')}">
+                                    시작일
+                                </span>
+                                <span aria-hidden="true">~</span>
+                                <span th:text="${#temporals.format(concert.endDate, 'yyyy.MM.dd')}">
+                                    종료일
+                                </span>
+                            </p>
+                            <p class="concert-period"
+                                th:unless="${concert.startDate != null and concert.endDate != null}"
+                            >일정 미정</p>
+                            <span class="card-action">
+                                상세보기 및 예매
+                                <span aria-hidden="true">→</span>
+                            </span>
+                        </div>
+                    </a>
+                </article>
+            </div>
+
+            <!-- 검색 결과 없음 -->
+            <div class="empty-state" th:if="${concertList.isEmpty()}">
+                <h3>조건에 맞는 공연이 없습니다.</h3>
+                <p>검색어나 장르를 변경해 보세요.</p>
+            </div>
+
+            <!-- 페이지 이동: 검색 조건 유지 -->
+            <nav class="pagination"
+                aria-label="공연 목록 페이지"
+                th:if="${concertList.totalPages > 1}"
+                th:with="
+                    startPage=${concertList.number > 2 ? concertList.number - 2 : 0},
+                    endPage=${concertList.number + 2 < concertList.totalPages ? concertList.number + 2 : concertList.totalPages - 1}
+                ">
+                <span class="page-link is-disabled"
+                    th:if="${concertList.first}"
+                    aria-disabled="true">이전</span>
+                <a class="page-link"
+                    th:unless="${concertList.first}"
+                    th:href="@{/concert/list(
+                        page=${concertList.number - 1},
+                        size=${searchDTO.size},
+                        genreId=${searchDTO.genreId},
+                        type=${searchDTO.type},
+                        searchKeyword=${searchDTO.searchKeyword}
+                    )}">이전</a>
+                <a class="page-link"
+                    th:each="num : ${#numbers.sequence(startPage, endPage)}"
+                    th:classappend="${num == concertList.number} ? 'is-active' : ''"
+                    th:attr="aria-current=${num == concertList.number ? 'page' : null}"
+                    th:href="@{/concert/list(
+                        page=${num},
+                        size=${searchDTO.size},
+                        genreId=${searchDTO.genreId},
+                        type=${searchDTO.type},
+                        searchKeyword=${searchDTO.searchKeyword}
+                    )}"
+                    th:text="${num + 1}"
+                >1</a>
+                <a class="page-link"
+                    th:unless="${concertList.last}"
+                    th:href="@{/concert/list(
+                        page=${concertList.number + 1},
+                        size=${searchDTO.size},
+                        genreId=${searchDTO.genreId},
+                        type=${searchDTO.type},
+                        searchKeyword=${searchDTO.searchKeyword}
+                    )}"
+                >다음</a>
+                <span class="page-link is-disabled"
+                    th:if="${concertList.last}"
+                    aria-disabled="true">다음</span>
+            </nav>
+        </section>
+    </main>
+</body>
+</html>

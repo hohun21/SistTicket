@@ -37,8 +37,9 @@ public class ConcertController {
 	    
 	    Page<ConcertListResponseDTO> concertList = concertService.getConcertList(searchDTO);
 	    model.addAttribute("concertList", concertList);
+	    model.addAttribute("genres", genreService.getGenreList());
 	    
-	    return "concert/list";
+	    return "concert/list_customer";
 	}
 	
     // 상세 보기 페이지 요청
