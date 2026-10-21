@@ -84,6 +84,10 @@
     <button type="button" class="btn btn-primary w-100" 
             onclick="submitConcert()" 
             th:text="${concert != null ? '수정 완료' : '등록 완료'}"></button>
+            
+       <div class="mt-4">
+        <a th:href="@{/settings/concert/{id}(id=${concert.concertId})}" class="btn btn-secondary">콘서트 상세로 돌아가기</a>
+    </div>   
 </div>
 <script>
     // 파일 선택 시 간단히 파일 이름만 UI에 보여주는 용도 (선택사항)

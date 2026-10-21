@@ -81,6 +81,10 @@
     </div>
 
     <button type="button" class="btn btn-primary w-100 py-2" onclick="submitPerformance()">저장하기</button>
+    
+     <div class="mt-4">
+        <a th:href="@{/settings/concert/{id}(id=${concertId})}" class="btn btn-secondary">콘서트 상세로 돌아가기</a>
+    </div>
 </div>
 
 <!-- 수정 시 기존에 캐스팅되었던 배우들을 셀렉트박스에 자동으로 꽂아주는 스크립트 -->
