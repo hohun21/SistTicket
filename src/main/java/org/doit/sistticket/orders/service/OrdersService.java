@@ -274,10 +274,20 @@ public class OrdersService {
 
             // 7. 주문 상세 만료 처리
             for (OrdersDetail detail : details) {
-                    detail.expire();
+                detail.expire();
             }
 
             ordersDetailRepository.saveAll(details);
+
+            // 8. 미결제 상태의 결제도 만료 처리
+            for (Payments payment : payments) {
+                PaymentStatus status = payment.getStatus();
+
+                if (status == PaymentStatus.PENDING
+                        || status == PaymentStatus.FAILED) {
+                    payment.cancelUnpaidPayment();
+                }
+            }
     } // expireOrder
 
 	@Transactional
@@ -359,12 +369,23 @@ public class OrdersService {
 		    throw new IllegalStateException("좌석 선점을 해제하지 못했습니다.");
 		}
 				
-		for(OrdersDetail detail : details) {
-			detail.cancel();
+		// 7. 주문 상세 취소 처리
+		for (OrdersDetail detail : details) {
+		    detail.cancel();
 		}
 
 		performanceSeatRepository.saveAll(seats);
 		ordersDetailRepository.saveAll(details);
+
+		// 8. 미결제 상태의 결제도 취소 처리
+		for (Payments payment : payments) {
+		    PaymentStatus status = payment.getStatus();
+
+		    if (status == PaymentStatus.PENDING
+		            || status == PaymentStatus.FAILED) {
+		        payment.cancelUnpaidPayment();
+		    }
+		}
 		
 	} // cancelOrder
 
