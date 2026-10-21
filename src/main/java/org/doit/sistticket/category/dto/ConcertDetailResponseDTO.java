@@ -57,5 +57,6 @@ public class ConcertDetailResponseDTO {
     public static class CastInfoItem {
         private String roleName;  // 역할명 (예: 장발장, 주연, 메인 아티스트)
         private String actorName; // 배우명 (예: 박은태, 아이유)
+        private String description;
     }
 }

@@ -19,4 +19,7 @@ public interface PerformanceCastRepository extends JpaRepository<PerformanceCast
  
     //특정 배역 삭제 시 연관된 출연진 전체 삭제
     void deleteByRole_RoleId(Long roleId);
+    
+    //콘서트 삭제시 얘도 삭제
+    void deleteByPerformance_Concert_ConcertId(Long concertId);
 }

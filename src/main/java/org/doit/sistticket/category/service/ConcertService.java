@@ -42,6 +42,7 @@ public interface ConcertService {
                             .map(c -> ConcertDetailResponseDTO.CastInfoItem.builder()
                                     .roleName(c.getRole().getRoleName())
                                     .actorName(c.getActor().getActorName())
+                                    .description(c.getRole().getDescription())
                                     .build())
                             .collect(Collectors.toList());
 

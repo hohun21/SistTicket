@@ -22,6 +22,7 @@ import org.doit.sistticket.category.repository.ConcertRepository;
 import org.doit.sistticket.category.repository.GenreRepository;
 import org.doit.sistticket.category.repository.PerformanceCastRepository;
 import org.doit.sistticket.category.repository.PerformancesRepository;
+import org.doit.sistticket.category.repository.RoleRepository;
 import org.doit.sistticket.venue.entity.Venue;
 import org.doit.sistticket.venue.repository.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,9 @@ public class ConcertServiceImpl implements ConcertService {
 
     @Autowired
     private PerformanceCastRepository performanceCastRepository; // 캐스팅 조회용
+    
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Override
     public Page<ConcertListResponseDTO> getConcertList(ConcertPageRequestDTO requestDTO) {
@@ -230,6 +234,15 @@ public class ConcertServiceImpl implements ConcertService {
         // 2. 외래 키 충돌 방지를 위해 연관된 이미지 DB 기록 먼저 삭제
         concertImgRepository.deleteByConcert_ConcertId(concertId);
 
+     // ② 회차-배역 매핑(PerformanceCast) 먼저 삭제 (회차나 배역을 지우기 전 필수!)
+        performanceCastRepository.deleteByPerformance_Concert_ConcertId(concertId);
+
+        // ③ 회차(Performances) 삭제
+        performanceRepository.deleteByConcert_ConcertId(concertId);
+
+        // ④ 배역(Role) 삭제
+        roleRepository.deleteByConcert_ConcertId(concertId);
+        
         // 3. 콘서트 삭제
         concertRepository.delete(concert);
         
