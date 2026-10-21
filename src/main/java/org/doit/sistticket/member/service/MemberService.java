@@ -1,5 +1,11 @@
 package org.doit.sistticket.member.service;
+
+import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.doit.sistticket.admin.domain.AdminMemberDTO;
 import org.doit.sistticket.admin.domain.AdminMemberUpdateDTO;
 import org.doit.sistticket.member.domain.FindPasswordRequestDTO;
@@ -11,12 +17,9 @@ import org.doit.sistticket.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.security.SecureRandom;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +29,7 @@ public class MemberService {
     private final MemberRepository memberrepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 💡 회원 가입 (여기에 이미 status(1)과 비밀번호 암호화가 잘 적용되어 있습니다!)
+    // 💡 회원 가입
     @Transactional
     public MemberResponseDTO register(MemberRequestDTO request){
         Members member = Members.builder()
@@ -57,7 +60,6 @@ public class MemberService {
         memberrepository.save(member);
     }
 
-    // 💡 조원분이 추가한 관리자용 전체 회원 조회 메서드
     public List<AdminMemberDTO> findAllAdminMembers() {
         return memberrepository.findAll()
                 .stream()
@@ -72,10 +74,10 @@ public class MemberService {
                 .toList();
     }
 
-
     public String findIdByEmailAndPhone(String name, String phone){
         return memberrepository.findIdByNameAndPhone(name, phone);
     }
+
     @Transactional
     public String resetPasswordWithTemporary(FindPasswordRequestDTO requestDTO){
         Members member = memberrepository.
@@ -84,8 +86,8 @@ public class MemberService {
                         requestDTO.name(),
                         requestDTO.phone()
                 ).orElseThrow(()->
-                        new IllegalArgumentException("회원 정보가 " +
-                                "일치하지 않습니다."));
+                        new IllegalArgumentException("회원 정보가 일치하지 않습니다."));
+        
         String temporaryPassword = generateTemporaryPassword();
         String encodedPassword = passwordEncoder.encode(temporaryPassword);
 
@@ -93,7 +95,6 @@ public class MemberService {
         memberrepository.save(member);
 
         return temporaryPassword;
-
     }
 
     private String generateTemporaryPassword() {
@@ -109,7 +110,34 @@ public class MemberService {
         }
         return password.toString();
     }
+
+    @Transactional
+    public Map<String, Object> editMemberInfo(String email, String newPhone, String newPassword){
+    	Members member = memberrepository.findByEmail(email)
+    			.orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+    	
+    	member.setPhone(newPhone);
+    	
+    	if(newPassword != null && !newPassword.isBlank()) {
+    		System.out.println("프론트에서 넘어온 새 비밀번호: " + newPassword);
+            System.out.println("DB에 저장되어 있던 비밀번호: " + member.getPassword());
+            
+            boolean isMatch = passwordEncoder.matches(newPassword, member.getPassword());
+            System.out.println("두 비밀번호가 같은가? " + isMatch);
+
+            if(isMatch) {
+                Map<String, Object> errorResult = new HashMap<>();
+                errorResult.put("success", false);
+                errorResult.put("message", "기존과 동일한 비밀번호로 변경할 수 없습니다.");
+                return errorResult;
+            }
+    		member.setPassword(passwordEncoder.encode(newPassword));
+    	}
+    	
+    	Map<String, Object> successResult = new HashMap<>();
+    	successResult.put("success", true);
+    	successResult.put("message", "회원 정보가 성공적으로 수정되었습니다.");
+    	
+    	return successResult;
+    }
 }
-
-
-

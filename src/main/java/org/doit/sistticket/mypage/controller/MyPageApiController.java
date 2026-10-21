@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
+import org.doit.sistticket.member.entity.Members;
+import org.doit.sistticket.member.repository.MemberRepository;
+import org.doit.sistticket.member.service.MemberService;
 import org.doit.sistticket.mypage.dto.MyPageDTO;
 import org.doit.sistticket.mypage.service.MyPageService;
 import org.doit.sistticket.review.dto.ReviewDTO;
@@ -42,6 +45,10 @@ public class MyPageApiController {
 	private final ReviewService reviewService;
 	
 	private final ReviewRepository reviewRepository;
+	
+	private final MemberRepository memberRepository;
+	
+	private final MemberService memberService;
 
 	// 1. 리뷰 작성
 	@PostMapping("/review")
@@ -115,12 +122,18 @@ public class MyPageApiController {
 
 		String phone = requestData.get("phone");
 		String password = requestData.get("password");
-		Long loginMemberId = userDetails.getMember().getMemberId();
+		
+		String email = userDetails.getMember().getEmail();
 
-		myPageService.updateMemberInfo(loginMemberId, phone, password);
+		Map<String, Object> result = memberService.editMemberInfo(email, phone, password);
+
+		if (result.get("success").equals(false)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+		}
+
 		httpSession.removeAttribute("passwordVerified");
 
-		return ResponseEntity.ok(Map.of("success", true, "message", "회원 정보가 성공적으로 수정되었습니다."));
+		return ResponseEntity.ok(result);
 	}
 
 	// 4. 회원 탈퇴
@@ -159,13 +172,17 @@ public class MyPageApiController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(Map.of("success", false, "message", "로그인이 필요합니다."));
 		}
+		
+		Members currentMembers = memberRepository.findByEmail(userDetails.getMember().getEmail())
+				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+		
 
 		Map<String, Object> userInfo = new HashMap<>();
 		userInfo.put("success", true);
-		userInfo.put("name", userDetails.getMember().getName());
-		userInfo.put("email", userDetails.getMember().getEmail());
-		userInfo.put("phone", userDetails.getMember().getPhone());
-
+		userInfo.put("name", currentMembers.getName());
+		userInfo.put("email", currentMembers.getEmail());
+		userInfo.put("phone", currentMembers.getPhone());
+		
 		return ResponseEntity.ok(userInfo);
 	}
 	
