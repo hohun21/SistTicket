@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SistTicket - 공연 목록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container my-5">
+    
+        <!-- 상단 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold m-0">전체 공연 목록</h2>
+            <a th:href="@{/concert/new}" class="btn btn-dark fw-bold">➕ 콘서트/뮤지컬 등록하기</a>
+        </div>
+        
+		<!-- 💡 검색창 및 필터 폼 영역 -->
+		<form th:action="@{/concert/list}" method="get" class="row g-2 mb-4 align-items-center">
+		    <!-- 장르 ID 유지 (탭 이동이나 검색 시 장르가 풀리지 않도록 숨김 처리) -->
+		    <input type="hidden" name="genreId" th:value="${searchDTO.genreId}">
+		
+		    <!-- 검색 타입 선택 (n: 공연명, v: 장소명, nv: 제목+장소) -->
+		    <div class="col-md-2">
+		        <select name="type" class="form-select" th:value="${searchDTO.type}">
+		            <option value="nv" th:selected="${searchDTO.type == 'nv'}">전체 (제목+장소)</option>
+		            <option value="n" th:selected="${searchDTO.type == 'n'}">공연명</option>
+		            <option value="v" th:selected="${searchDTO.type == 'v'}">공연장</option>
+		        </select>
+		    </div>
+		
+		    <!-- 검색 키워드 입력창 -->
+		    <div class="col-md-4">
+		        <input type="text" name="searchKeyword" class="form-control" 
+		               placeholder="검색어를 입력하세요" th:value="${searchDTO.searchKeyword}">
+		    </div>
+		
+		    <!-- 검색 버튼 및 초기화 버튼 -->
+		    <div class="col-md-2">
+		        <button type="submit" class="btn btn-primary w-100">검색</button>
+		    </div>
+		    <div class="col-md-2">
+		        <a th:href="@{/concert/list(genreId=${searchDTO.genreId})}" class="btn btn-outline-secondary w-100">초기화</a>
+		    </div>
+		</form>
+		
+		
+        <!-- 💡 장르별 탭 메뉴 -->
+        <ul class="nav nav-pills mb-4">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == null} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list}">전체보기</a>
+            </li>
+            <!-- 콘서트 장르 탭 -->
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 1} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=1)}">아이돌</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 2} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=2)}">발라드/R&B</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 3} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=3)}">힙합/EDM</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 4} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=4)}">페스티벌</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 5} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=5)}">인디/록</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 6} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=6)}">내한</a>
+            </li>
+            
+            
+            <!-- 뮤지컬 장르 탭 -->
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 7} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=7)}">뮤지컬</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${searchDTO.genreId == 8} ? 'active' : 'text-dark'" 
+                   th:href="@{/concert/list(genreId=8)}">연극</a>
+            </li>
+        </ul>
+
+        <!-- 카드 리스트 출력 영역 (기존과 동일) -->
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <th:block th:if="${concertList != null and !concertList.isEmpty()}">
+                <div class="col" th:each="concert : ${concertList}">
+                    <div class="card h-100 shadow-sm position-relative">
+                        <a th:href="@{/admin/concert/edit/{id}(id=${concert.concertId})}" 
+                           class="position-absolute top-0 end-0 m-2 btn btn-sm btn-light shadow-sm fw-bold text-dark">✏️ 수정</a>
+                        <img th:src="${concert.imgUrl != null ? concert.imgUrl : '/images/default.png'}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                        <div class="card-body">
+                            <span class="badge bg-secondary mb-2" th:text="${concert.genreName}">장르</span>
+                            <h5 class="card-title fw-bold" th:text="${concert.concertName}">공연 제목</h5>
+                            <p class="card-text text-muted small mb-1" th:text="${concert.venueName}">공연장</p>
+                            <p class="card-text small text-secondary">
+                                <span th:text="${#temporals.format(concert.startDate, 'yyyy-MM-dd')}"></span> ~ 
+                                <span th:text="${#temporals.format(concert.endDate, 'yyyy-MM-dd')}"></span>
+                            </p>
+                            <div class="d-flex align-items-center gap-1 mt-2">
+							    <span class="text-warning fw-bold">★</span>
+							    <span class="fw-bold small" th:text="${concert.ratingAvg != null ? #numbers.formatDecimal(concert.ratingAvg, 1, 1) : '0.0'}">0.0</span>
+							    <span class="text-muted small" th:text="'(' + ${concert.reviewCount != null ? concert.reviewCount : 0} + '개 리뷰)'">(0개 리뷰)</span>
+							</div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a th:href="@{/concert/{id}(id=${concert.concertId})}" class="btn btn-outline-primary w-100">상세보기 및 예매</a>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+            <th:block th:if="${concertList == null or concertList.isEmpty()}">
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">해당 조건에 등록된 공연이 없습니다.</p>
+                </div>
+            </th:block>
+        </div>
+
+        <!-- 💡 페이징 네비게이션바 (genreId 조건 유지) -->
+        <nav th:if="${concertList.totalPages > 0}" class="mt-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${concertList.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/concert/list(page=${concertList.number - 1}, genreId=${searchDTO.genreId})}">이전</a>
+                </li>
+                <li class="page-item" th:each="num : ${#numbers.sequence(0, concertList.totalPages - 1)}" th:classappend="${num == concertList.number} ? 'active'">
+                    <a class="page-link" th:href="@{/concert/list(page=${num}, genreId=${searchDTO.genreId})}" th:text="${num + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${concertList.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/concert/list(page=${concertList.number + 1}, genreId=${searchDTO.genreId})}">다음</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+</body>
+</html>

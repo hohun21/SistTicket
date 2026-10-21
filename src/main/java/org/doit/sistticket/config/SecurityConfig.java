@@ -94,12 +94,23 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 인증 실패 및 권한 없음 예외
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(
-                                (request, response, authException) ->{
-                                    response.sendRedirect("/login");
-                                })
-                        .accessDeniedHandler((request, response, authException) ->{
-                            response.sendRedirect("/access-denied");
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            if (request.getRequestURI().startsWith("/api/")) {
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.getWriter().write("{\"success\":false,\"message\":\"로그인이 필요합니다.\"}");
+                            } else {
+                                response.sendRedirect("/login");
+                            }
+                        })
+                        .accessDeniedHandler((request, response, authException) -> {
+                            if (request.getRequestURI().startsWith("/api/")) {
+                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
+                            } else {
+                                response.sendRedirect("/access-denied");
+                            }
                         })
                 );
         return http.build();
