@@ -8,40 +8,6 @@
 <body class="bg-light">
 
     <div class="container my-5">
-		<a th:href="@{/concert/edit/{id}(id=${concert.concertId})}" 
-		class="position-absolute top-0 end-0 m-2 btn btn-sm btn-light shadow-sm fw-bold text-dark">✏️ 수정</a>
-		<!-- 삭제 버튼 예시 -->
-		<button type="button" class="btn btn-danger" th:onclick="'deleteConcert(' + ${concert.concertId} + ')'">삭제하기</button>
-		<div class="mt-4">
-		    <!-- 1. 배역 관리 페이지로 이동하는 버튼 -->
-		    <a th:href="@{/concert/{id}/roles(id=${concert.concertId})}" class="btn btn-secondary me-2">배역 관리</a>
-
-		    <!-- 2. 회차 생성 페이지로 이동하는 버튼 -->
-		    <a th:href="@{/concert/{id}/performance/new(id=${concert.concertId})}" class="btn btn-primary">회차 생성</a>
-		</div>
-		<script>
-		    function deleteConcert(concertId) {
-		        if (!confirm("정말 이 콘서트를 삭제하시겠습니까?")) {
-		            return;
-		        }
-
-		        fetch(`/api/concert/${concertId}`, {
-		            method: 'DELETE'
-		        })
-		        .then(response => {
-		            if (response.ok) {
-		                alert("성공적으로 삭제되었습니다.");
-		                window.location.href = "/concert/list"; // 삭제 후 목록 페이지로 이동
-		            } else {
-		                throw new Error("삭제에 실패했습니다.");
-		            }
-		        })
-		        .catch(error => {
-		            alert(error.message);
-		            console.error("Error:", error);
-		        });
-		    }
-		</script>
      <a class="page-link" th:href="@{/concert/list}">  <h4>◀ 목록 보기</h4> </a>
         <!-- 상단: 공연 기본 정보 영역 (포스터 + 기본 개요) -->
         <div class="row bg-white p-4 rounded shadow-sm mb-4">
@@ -135,18 +101,12 @@
 
 							<!-- 좌석 선택 및 관리 버튼 영역 -->
 							<div class="mt-3 d-flex justify-content-between align-items-center">
-							    <!-- 관리자용 수정/삭제 버튼 그룹 -->
-							    <div>
-							        <a th:href="@{/concert/{concertId}/performance/{perfId}/edit(concertId=${concert.concertId}, perfId=${perf.performanceId})}" 
-							           class="btn btn-outline-secondary btn-sm">회차 수정</a>
-							        <button type="button" class="btn btn-outline-danger btn-sm" 
-							                th:onclick="'deletePerformance(' + ${perf.performanceId} + ')'">회차 삭제</button>
-							    </div>
-
 							    <!-- 일반 사용자용 좌석 선택 버튼 -->
-							    <a th:href="@{/reservation/seat(performanceId=${perf.performanceId})}" class="btn btn-primary btn-sm px-4">좌석 선택하기</a>
+							    <a th:href="@{http://localhost:5173/seat/select(performanceId=${perf.performanceId})}"
+								   class="btn btn-primary btn-sm px-4">
+								    좌석 선택하기
+								</a>
 							</div>
-
                         </div>
                     </div>
                 </div>
@@ -169,37 +129,8 @@
 
     <!-- 부트스트랩 JS (아코디언 토글 기능 등에 필요) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-	<script>
-	    function deletePerformance(performanceId) {
-	        if (!confirm("정말 이 회차를 삭제하시겠습니까? 연관된 캐스팅 정보도 함께 삭제됩니다.")) {
-	            return;
-	        }
-
-	        // 현재 페이지 URL에서 concertId 추출하거나 타임리프 변수 활용
-	        const pathSegments = window.location.pathname.split('/');
-	        const concertId = pathSegments[2]; // /concert/{concertId} 구조일 때
-
-	        fetch(`/api/concert/${concertId}/performance/${performanceId}`, {
-	            method: 'DELETE'
-	        })
-	        .then(response => {
-	            if (response.ok) {
-	                alert("회차가 성공적으로 삭제되었습니다.");
-	                location.reload();
-	            } else {
-	                alert("회차 삭제에 실패했습니다.");
-	            }
-	        })
-	        .catch(error => {
-	            console.error("Error:", error);
-	            alert("통신 중 오류가 발생했습니다.");
-	        });
-	    }
-	</script>
 	</body>
 
-
-    
     <script th:inline="javascript">
         document.addEventListener("DOMContentLoaded", function() {
             const concertId = /*[[${concert.concertId}]]*/ 0;

@@ -55,5 +55,9 @@ public class Performances {
 	@Column(name = "status")
 	private PerformanceStatus status;
 	
+	// 순번 컬럼 추가 (1회차, 2회차...)
+    @Column(name = "performance_seq")
+    private Integer performanceSeq;
+	
 
 }

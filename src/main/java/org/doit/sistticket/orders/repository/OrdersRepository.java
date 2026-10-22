@@ -31,4 +31,6 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     		WHERE o.ordersId = :ordersId
     		""")
     Optional<Orders> findByIdForUpdate(@Param("ordersId") Long ordersId);
+    
+    boolean existsByHoldToken(String holdToken);
 }
