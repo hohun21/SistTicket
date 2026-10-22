@@ -15,6 +15,7 @@ import org.doit.sistticket.member.entity.Members;
 import org.doit.sistticket.member.repository.MemberRepository;
 import org.doit.sistticket.orders.dto.OrdersDetailResponseDTO;
 import org.doit.sistticket.orders.dto.OrdersResponseDTO;
+import org.doit.sistticket.orders.dto.OrderCreateResponseDTO;
 import org.doit.sistticket.orders.entity.Orders;
 import org.doit.sistticket.orders.entity.OrdersDetail;
 import org.doit.sistticket.orders.enums.OrdersDetailStatus;
@@ -49,7 +50,7 @@ public class OrdersService {
 	private final SeatBookingPolicy seatBookingPolicy;
 
 	@Transactional
-	public Orders createOrder(
+	public OrderCreateResponseDTO createOrder(
 			Long memberId,
 			Long performanceId,
 			List<Long> performanceSeatIds,
@@ -201,14 +202,17 @@ public class OrdersService {
 
 		// 9. 결제 대기 생성
 		Payments payment = new Payments(
-				paymentMethod,
-				totalAmount,
-				savedOrder
-				);
+		        paymentMethod,
+		        totalAmount,
+		        savedOrder
+		);
 
-		paymentsRepository.save(payment);
+		Payments savedPayment = paymentsRepository.save(payment);
 
-		return savedOrder;
+		return OrderCreateResponseDTO.from(
+		        savedOrder,
+		        savedPayment.getPaymentId()
+		);
 	} // createOrder
 
 	@Transactional
