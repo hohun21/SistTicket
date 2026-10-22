@@ -178,7 +178,7 @@ public class ConcertServiceImpl implements ConcertService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘서트 ID입니다: " + concertId));
 
         // 해당 콘서트 ID에 속한 회차 목록만
-        List<Performances> performances = performanceRepository.findByConcert_ConcertId(concertId);
+        List<Performances> performances = performanceRepository.findByConcert_ConcertIdOrderByPerformanceDateAsc(concertId);
 
         // 조회된 회차들의 ID만 추출
         List<Long> performanceIds = performances.stream()
