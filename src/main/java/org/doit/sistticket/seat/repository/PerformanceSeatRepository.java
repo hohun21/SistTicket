@@ -4,6 +4,7 @@ package org.doit.sistticket.seat.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.doit.sistticket.seat.dto.SeatPerformanceResponse;
 import org.doit.sistticket.seat.entity.PerformanceSeat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -60,4 +61,44 @@ public interface PerformanceSeatRepository
         """)
     List<PerformanceSeat> findByHoldTokenForUpdate(
             @Param("holdToken") String holdToken);
+    
+    // 좌석 화면에 표시할 공연 회차 정보 조회
+    @Query("""
+        select new org.doit.sistticket.seat.dto.SeatPerformanceResponse(
+            p.performanceId,
+            c.concertName,
+            p.performanceDate,
+            v.venueName
+        )
+        from Performances p
+        join p.concert c
+        join c.venue v
+        where p.performanceId = :performanceId
+        """)
+    Optional<SeatPerformanceResponse> findPerformanceInfo(
+            @Param("performanceId") Long performanceId);
+    
+    // 해당 회차에 이미 좌석이 생성되어 있는지 확인
+    boolean existsByPerformance_PerformanceId(Long performanceId);
+    
+    // 현재 회차와 같은 공연에 속한 회차 목록 조회
+    @Query("""
+        select new org.doit.sistticket.seat.dto.SeatPerformanceResponse(
+            p.performanceId,
+            c.concertName,
+            p.performanceDate,
+            v.venueName
+        )
+        from Performances p
+        join p.concert c
+        join c.venue v
+        where c.concertId = (
+            select base.concert.concertId
+            from Performances base
+            where base.performanceId = :performanceId
+        )
+        order by p.performanceDate, p.performanceId
+        """)
+    List<SeatPerformanceResponse> findSchedules(
+            @Param("performanceId") Long performanceId);
 }

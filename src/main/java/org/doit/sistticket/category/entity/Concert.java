@@ -4,11 +4,14 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.doit.sistticket.venue.entity.Venue;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,8 +41,10 @@ public class Concert {
 	private long concertId;
 	
 	//concerts - venues
-	@ManyToOne
-    @JoinColumn(name = "venue_id", nullable=false)
+
+    @JoinColumn(name = "venue_id", nullable=true)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@OnDelete(action = OnDeleteAction.SET_NULL) // 장소가 삭제되면 FK를 NULL로 설정
     private Venue venue;
 	
 	@Column(name = "start_date")

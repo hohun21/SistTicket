@@ -15,4 +15,5 @@ public class MyPageDTO {
     private BigDecimal price;
     private String status;
     private LocalDateTime createdAt;
+    private boolean isReviewed;
 }
