@@ -65,11 +65,12 @@ public interface PerformanceSeatRepository
     // 좌석 화면에 표시할 공연 회차 정보 조회
     @Query("""
         select new org.doit.sistticket.seat.dto.SeatPerformanceResponse(
-            p.performanceId,
-            c.concertName,
-            p.performanceDate,
-            v.venueName
-        )
+		    p.performanceId,
+		    p.performanceSeq,
+		    c.concertName,
+		    p.performanceDate,
+		    v.venueName
+		)
         from Performances p
         join p.concert c
         join c.venue v
@@ -84,11 +85,12 @@ public interface PerformanceSeatRepository
     // 현재 회차와 같은 공연에 속한 회차 목록 조회
     @Query("""
         select new org.doit.sistticket.seat.dto.SeatPerformanceResponse(
-            p.performanceId,
-            c.concertName,
-            p.performanceDate,
-            v.venueName
-        )
+		    p.performanceId,
+		    p.performanceSeq,
+		    c.concertName,
+		    p.performanceDate,
+		    v.venueName
+		)
         from Performances p
         join p.concert c
         join c.venue v
