@@ -31,29 +31,33 @@ import lombok.ToString;
 @Table(name="performances")
 
 public class Performances {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY )
 	@Column(name = "performance_id", nullable=false)
 	private long performanceId;
-	
+
 	//performances - concerts
-    @ManyToOne
-    @JoinColumn(name = "concert_id", nullable=false)
-    private Concert concert;
-	
+	@ManyToOne
+	@JoinColumn(name = "concert_id", nullable=false)
+	private Concert concert;
+
 	@Column(name = "performance_date")
 	private LocalDateTime performanceDate;
-	
+
 	@Column(name = "booking_start")
 	private LocalDateTime bookingStart;
-	
+
 	@Column(name = "booking_end")
 	private LocalDateTime bookingEnd;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
 	private PerformanceStatus status;
-	
+
+	// 순번 컬럼 추가 (1회차, 2회차...)
+	@Column(name = "performance_seq")
+	private Integer performanceSeq;
+
 
 }

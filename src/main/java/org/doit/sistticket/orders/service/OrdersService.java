@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.doit.sistticket.admin.domain.AdminReservationDTO;
+import org.doit.sistticket.admin.domain.AdminReservationDetailDTO;
 import org.doit.sistticket.category.entity.Performances;
 import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.member.entity.Members;
@@ -399,6 +401,14 @@ public class OrdersService {
 				.stream()
 				.map(OrdersDetailResponseDTO::new)
 				.toList();
+	}
+	// 관리자 모든 예매내역 조회용 서비스
+	public List<AdminReservationDTO> getAllReservations() {
+		return ordersRepository.findAllReservations();
+	}
+	// 관리자 모든 예매내역 상세 조회용 서비스
+	public List<AdminReservationDetailDTO> getAllReservationDetails(Long ordersId) {
+		return this.ordersDetailRepository.findReservationDetails(ordersId);
 	}
 
 } // OrderService
