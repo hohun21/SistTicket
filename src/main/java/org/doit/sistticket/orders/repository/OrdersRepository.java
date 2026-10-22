@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.doit.sistticket.admin.domain.AdminReservationDTO;
 import org.doit.sistticket.orders.entity.Orders;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -31,6 +32,28 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     		WHERE o.ordersId = :ordersId
     		""")
     Optional<Orders> findByIdForUpdate(@Param("ordersId") Long ordersId);
-    
+
+    // 관리자용 모든 예매내역 조회
+    @Query("""
+        SELECT new org.doit.sistticket.admin.domain.AdminReservationDTO(
+            o.ordersId,
+            o.orderNo,
+            m.memberId,
+            m.name,
+            c.concertName,
+            o.createdAt,
+            o.totalAmount,
+            CAST(pay.status AS string)
+        )
+        FROM Orders o
+        JOIN o.member m
+        JOIN o.performance per
+        JOIN per.concert c
+        LEFT JOIN Payments pay ON pay.orders = o
+        ORDER BY o.createdAt DESC
+    """)
+    List<AdminReservationDTO> findAllReservations();
+
     boolean existsByHoldToken(String holdToken);
+
 }

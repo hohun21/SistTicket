@@ -15,7 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class ConcertDetailResponseDTO {
-    
+	
     // 1. 콘서트 기본 정보
     private Long concertId;
     private String concertName;
@@ -39,6 +39,7 @@ public class ConcertDetailResponseDTO {
     @Builder
     public static class PerformanceInfoItem {
         private Long performanceId;          // 회차 ID
+        private Integer performanceSeq;
         private LocalDateTime performanceDate; // 공연 시작 일시 (년/월/일 시:분)
         private LocalDateTime bookingStart;    // 예매 시작일
         private LocalDateTime bookingEnd;      // 예매 마감일

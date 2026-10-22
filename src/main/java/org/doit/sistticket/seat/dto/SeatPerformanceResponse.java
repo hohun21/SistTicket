@@ -9,7 +9,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class SeatPerformanceResponse {
 
-    private long performanceId;
+	private long performanceId;
+    private Integer performanceSeq;
     private String concertName;
     private LocalDateTime performanceDate;
     private String venueName;

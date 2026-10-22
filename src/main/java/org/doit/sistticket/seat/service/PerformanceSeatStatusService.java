@@ -3,6 +3,11 @@ package org.doit.sistticket.seat.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.doit.sistticket.orders.entity.Orders;
+import org.springframework.transaction.annotation.Propagation;
 import org.doit.sistticket.orders.entity.OrdersDetail;
 import org.doit.sistticket.orders.enums.OrdersDetailStatus;
 import org.doit.sistticket.orders.repository.OrdersDetailRepository;
@@ -230,6 +235,69 @@ public class PerformanceSeatStatusService {
     	        }
     	    }
     } // validateHoldForRetry
+    
+    // OrdersService.expireOrder()가 주문을 잠그고 만료 여부를 검증한 뒤 호출
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void releaseExpiredSeats(Long orderId, String holdToken) {
+        if (orderId == null || holdToken == null || holdToken.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "주문 ID 또는 선점 토큰이 없습니다.");
+        }
+
+        List<OrdersDetail> details =
+                ordersDetailRepository.findByOrders_OrdersId(orderId);
+
+        if (details.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "주문 상세를 찾을 수 없습니다.");
+        }
+
+        Orders order = details.get(0).getOrders();
+        LocalDateTime now = LocalDateTime.now();
+
+        // 전달받은 토큰이 만료된 주문의 토큰인지 검증
+        if (!holdToken.equals(order.getHoldToken())
+                || order.getHoldExpiresAt() == null
+                || order.getHoldExpiresAt().isAfter(now)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "만료된 주문의 선점이 아닙니다.");
+        }
+
+        for (OrdersDetail detail : details) {
+            if (detail.getStatus() != OrdersDetailStatus.PENDING) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT, "만료 처리할 수 없는 주문 상태입니다.");
+            }
+        }
+
+        Set<Long> orderSeatIds = details.stream()
+                .map(detail ->
+                        detail.getPerformanceSeat().getPerformanceSeatId())
+                .collect(Collectors.toSet());
+
+        Long orderMemberId = order.getMember().getMemberId();
+
+        // 다른 토큰으로 다시 선점된 좌석은 조회 대상에서 제외
+        List<PerformanceSeat> seats = performanceSeatRepository.findByHoldTokenForUpdate(holdToken);
+
+        // 남아 있는 좌석만 검증한다.
+        // 일부 또는 전부 다른 토큰으로 넘어갔어도 정상적으로 진행한다.
+        for (PerformanceSeat seat : seats) {
+            if (!orderSeatIds.contains(seat.getPerformanceSeatId())
+                    || !"HELD".equals(seat.getStatus())
+                    || seat.getHoldMember() == null
+                    || !orderMemberId.equals(
+                            seat.getHoldMember().getMemberId())
+                    || seat.getHoldExpiresAt() == null
+                    || seat.getHoldExpiresAt().isAfter(now)) {
+                throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "만료된 주문의 좌석 정보가 일치하지 않습니다.");
+            }
+        }
+
+        // 검증을 모두 통과한 원래 선점만 해제
+        seats.forEach(PerformanceSeat::release);
+    }
     
 } // PerformanceSeatStatusService
 

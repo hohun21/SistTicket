@@ -32,7 +32,11 @@ public class SecurityConfig {
                     "/settings/**",
                     "/",
                     "/concert/list",
+                    "/login",
+                    "/error",
+                    "/access-denied",
                     "/signup",
+                    "/api/main/**",
                     "/api/member/**",
                     "/api/concert/**",
                     "/uploadAjax",
@@ -60,7 +64,7 @@ public class SecurityConfig {
                         "{\"redirectUrl\":\""
                             + (isAdmin
                                 ? "http://localhost:5173/admin"
-                                : "http://localhost:80")
+                                : "http://localhost:5173")
                             + "\"}"
                     );
                 })
@@ -89,9 +93,15 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
-            )
+                    .logoutUrl("/logout")
+                    .logoutSuccessHandler((request, response, authentication) -> {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"success\":true}");
+                    })
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
+                )
             .csrf(csrf -> csrf.disable())
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
@@ -102,7 +112,7 @@ public class SecurityConfig {
                             "{\"success\":false,\"message\":\"로그인이 필요합니다.\"}"
                         );
                     } else {
-                        response.sendRedirect("/login");
+                    	response.sendRedirect("http://localhost:5173/member/login");
                     }
                 })
                 .accessDeniedHandler((request, response, authException) -> {
@@ -138,7 +148,7 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source =
             new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/**", config);
 
         return source;
     }

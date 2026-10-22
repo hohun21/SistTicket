@@ -11,6 +11,7 @@ import org.doit.sistticket.category.repository.ConcertRepository;
 import org.doit.sistticket.category.repository.PerformanceCastRepository;
 import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.category.repository.RoleRepository;
+import org.doit.sistticket.seat.service.SeatInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +27,8 @@ public class PerformanceServiceImpl implements PerformanceService {
     private final ConcertRepository concertRepository;
     private final RoleRepository roleRepository;
     private final ActorRepository actorRepository;
-
+    private final SeatInitService seatInitService;
+    
     @Override
     public void registerPerformance(Long concertId, PerformanceRequestDTO dto) {
         Concert concert = concertRepository.findById(concertId)
@@ -49,7 +51,10 @@ public class PerformanceServiceImpl implements PerformanceService {
         
         Performances savedPerformance = performancesRepository.save(performance);
 
-        // 2. 함께 넘어온 캐스팅 정보(배역-배우 매핑)가 있다면 저장
+        // 2. 회차별 좌석 정보 저장
+        seatInitService.createSeats(savedPerformance);
+        
+        // 3. 함께 넘어온 캐스팅 정보(배역-배우 매핑)가 있다면 저장
         if (dto.getCasts() != null) {
             for (PerformanceRequestDTO.CastRequestDTO castDto : dto.getCasts()) {
                 Role role = roleRepository.findById(castDto.getRoleId())
