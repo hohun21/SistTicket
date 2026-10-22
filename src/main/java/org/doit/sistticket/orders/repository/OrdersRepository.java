@@ -33,6 +33,7 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     		""")
     Optional<Orders> findByIdForUpdate(@Param("ordersId") Long ordersId);
 
+    // 관리자용 모든 예매내역 조회
     @Query("""
         SELECT new org.doit.sistticket.admin.domain.AdminReservationDTO(
             o.ordersId,
@@ -52,4 +53,7 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
         ORDER BY o.createdAt DESC
     """)
     List<AdminReservationDTO> findAllReservations();
+
+    boolean existsByHoldToken(String holdToken);
+
 }

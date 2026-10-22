@@ -26,7 +26,8 @@ public class ConcertDetailResponseDTO {
     private String venueName;
     private String venueAddress;
     private String imgUrl;
-    
+    private Long runTimeMinutes; //
+   
     // 2. 해당 콘서트의 모든 회차 일정 리스트 (1회차, 2회차, 3회차...)
     private List<PerformanceInfoItem> performanceList;
 
@@ -42,7 +43,7 @@ public class ConcertDetailResponseDTO {
         private LocalDateTime bookingStart;    // 예매 시작일
         private LocalDateTime bookingEnd;      // 예매 마감일
         private String status;               // 회차 상태 (ONGOING, UPCOMING 등)
-        
+       
         // 3. 해당 회차에 매칭된 캐스팅 정보 리스트 (장발장-박은태, 자베르-옥주현 등)
         private List<CastInfoItem> casts;
     }
@@ -56,5 +57,6 @@ public class ConcertDetailResponseDTO {
     public static class CastInfoItem {
         private String roleName;  // 역할명 (예: 장발장, 주연, 메인 아티스트)
         private String actorName; // 배우명 (예: 박은태, 아이유)
+        private String description;
     }
 }

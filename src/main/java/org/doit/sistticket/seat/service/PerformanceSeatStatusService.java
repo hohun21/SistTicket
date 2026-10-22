@@ -174,4 +174,75 @@ public class PerformanceSeatStatusService {
 
         return tokens.get(0);
     }
-}
+    
+    // 결제 재시도 이전에 좌석 선점 상태만 검증 - 좌석상태 변경 X
+    public void validateHoldForRetry(Long orderId, String holdToken) {
+    		if (orderId == null || holdToken == null || holdToken.isBlank()) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 ID 또는 선점 토큰이 없습니다.");
+			}
+    		
+    		// 1. 해당 토큰으로 선점된 좌석을 잠근다.
+    		List<PerformanceSeat> seats = performanceSeatRepository.findByHoldTokenForUpdate(holdToken);
+    		
+    		if (seats.isEmpty()) {
+    			throw new ResponseStatusException(HttpStatus.CONFLICT, "선점된 좌석을 찾을 수 없습니다.");
+			}
+    		
+    		// 2. 주문 상세를 조회한다.
+    		List<OrdersDetail> details = ordersDetailRepository.findByOrders_OrdersId(orderId);
+    		
+    		if (details.isEmpty()) {
+    			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "주문 상세를 찾을 수 없습니다.");
+			}
+    		
+    		// 3. 모든 주문 상세가 결제 대기 상태인지 확인한다.
+    		for(OrdersDetail detail : details) {
+    			if (detail.getStatus() != OrdersDetailStatus.PENDING) {
+    				throw new ResponseStatusException(HttpStatus.CONFLICT, "결제 대기 중인 주문이 아니므로 재시도할 수 없습니다.");
+				}
+    		}
+    		
+    		// 4. 주문 좌석 ID와 현재 선점 좌석 ID를 비교한다.
+    		List<Long> orderSeatIds = details.stream().map(detail -> detail.getPerformanceSeat().getPerformanceSeatId())
+    												 .sorted().toList();
+    		
+    		List<Long> heldSeatIds = seats.stream().map(PerformanceSeat::getPerformanceSeatId)
+					 .sorted().toList();
+    		
+    		if (!orderSeatIds.equals(heldSeatIds)) {
+    			throw new ResponseStatusException(HttpStatus.CONFLICT, "주문좌석과 선점 좌석이 다릅니다.");
+			}
+    		
+    	    // 5. 주문 회원과 좌석 선점 회원을 비교한다.
+    	    Long orderMemberId = details.get(0)
+    	            .getOrders().getMember().getMemberId();
+
+    	    LocalDateTime now = LocalDateTime.now();
+
+    	    for (PerformanceSeat seat : seats) {
+    	        if (!seat.canConfirm(holdToken, now)
+    	                || seat.getHoldMember() == null
+    	                || !seat.getHoldMember().getMemberId().equals(orderMemberId)) {
+
+    	            throw new ResponseStatusException(
+    	                    HttpStatus.CONFLICT,
+    	                    "좌석 선점이 만료되었거나 현재 주문의 선점이 아닙니다.");
+    	        }
+    	    }
+    } // validateHoldForRetry
+    
+} // PerformanceSeatStatusService
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -28,4 +28,10 @@ public interface ReviewRepository extends JpaRepository<Reviews, Long>{
 	Page<ReviewDTO> findMyReviewsWithConcertTitle(@Param("memberId") Long memberId, Pageable pageable);
 	
 	boolean existsByMember_MemberIdAndConcert_ConcertId(Long memberId, Long concertId); 
+	
+	@Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Reviews r WHERE r.concert.concertId = :concertId")
+	Double findAverageRatingByConcertId(@Param("concertId") Long concertId);
+	
+	@Query("SELECT COUNT(r) FROM Reviews r WHERE r.concert.concertId = :concertId")
+	Long countByConcertId(@Param("concertId") Long concertId);
 }

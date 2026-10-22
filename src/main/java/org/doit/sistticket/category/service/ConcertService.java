@@ -11,7 +11,7 @@ import org.doit.sistticket.category.entity.Concert;
 import org.doit.sistticket.category.entity.PerformanceCast;
 import org.doit.sistticket.category.entity.Performances;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ConcertService {
 
@@ -33,7 +33,7 @@ public interface ConcertService {
     default ConcertDetailResponseDTO entityToDetailDto(
             Concert concert, 
             List<Performances> performances, 
-            List<PerformanceCast> casts) {
+            List<PerformanceCast> casts, String imgUrl) {
         
         List<ConcertDetailResponseDTO.PerformanceInfoItem> perfItems = performances.stream()
                 .map(perf -> {
@@ -42,6 +42,7 @@ public interface ConcertService {
                             .map(c -> ConcertDetailResponseDTO.CastInfoItem.builder()
                                     .roleName(c.getRole().getRoleName())
                                     .actorName(c.getActor().getActorName())
+                                    .description(c.getRole().getDescription())
                                     .build())
                             .collect(Collectors.toList());
 
@@ -66,21 +67,26 @@ public interface ConcertService {
                 .venueName(concert.getVenue() != null ? concert.getVenue().getVenueName() : "공연장 미정")
                 .venueAddress(concert.getVenue() != null ? concert.getVenue().getAddress() : "")
                 .performanceList(perfItems)
+                .runTimeMinutes(concert.getRunTime() != null ? (long) concert.getRunTime().toMinutes() : 0) //
+                .imgUrl(imgUrl)
                 .build();
     }
 
-    // 목록 조회
-    List<ConcertListResponseDTO> getList();
 
     // 상세 보기 (Concert ID로 회차 및 캐스팅 정보)
     ConcertDetailResponseDTO getDetail(Long concertId);
 
 	Long registerConcert(ConcertRequestDTO dto);
 
-	void updateConcert(Long concertId, ConcertRequestDTO dto);
+	void updateConcert(Long concertId, ConcertRequestDTO dto, List<MultipartFile> imageFiles);
 
 	void deleteConcert(Long concertId);
 
 
 	Page<ConcertListResponseDTO> getConcertList(ConcertPageRequestDTO requestDTO);
+
+
+	Long registerConcert(ConcertRequestDTO dto, List<MultipartFile> imageFiles);
+
+	List<ConcertListResponseDTO> getList();
 }

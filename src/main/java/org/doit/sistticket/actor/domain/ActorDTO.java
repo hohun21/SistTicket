@@ -1,14 +1,15 @@
 package org.doit.sistticket.actor.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
-@Getter
-@Setter
-@ToString
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ActorDTO {
-    private Long actorId;
     private String actorName;
-    private String profileUrl;
+    private String description;
+    private String profileURL; 
 }
