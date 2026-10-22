@@ -32,6 +32,9 @@ public class SecurityConfig {
                     "/settings/**",
                     "/",
                     "/concert/list",
+                    "/login",
+                    "/error",
+                    "/access-denied",
                     "/signup",
                     "/api/member/**",
                     "/api/concert/**",
@@ -102,7 +105,7 @@ public class SecurityConfig {
                             "{\"success\":false,\"message\":\"로그인이 필요합니다.\"}"
                         );
                     } else {
-                        response.sendRedirect("/login");
+                    	response.sendRedirect("http://localhost:5173/member/login");
                     }
                 })
                 .accessDeniedHandler((request, response, authException) -> {

@@ -84,6 +84,7 @@ public class MyPageServiceImpl implements MyPageService {
 					.createdAt(detail.getCreatedAt())
 					.startDate(concertDate)
 					.venueName(venueName)
+					.performanceSeq(detail.getOrders().getPerformance().getPerformanceSeq())
 					.seatInfo(seatInfo)
 					.isReviewed(hasReviewed)
 					.buttonStatus(buttonStatus)
