@@ -1,5 +1,7 @@
 package org.doit.sistticket.category.repository;
 
+import java.util.List;
+
 import org.doit.sistticket.category.entity.Concert;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,4 +31,6 @@ public interface ConcertRepository extends JpaRepository<Concert,Long>{
             @Param("type") String type,
             @Param("keyword") String keyword,
             Pageable pageable);
+    
+    List<Concert> findTop4ByOrderByConcertIdDesc();
 }
