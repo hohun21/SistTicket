@@ -2,6 +2,7 @@ package org.doit.sistticket.orders.controller;
 
 import java.util.List;
 
+import org.doit.sistticket.orders.dto.OrderCreateResponseDTO;
 import org.doit.sistticket.orders.dto.OrdersCreateRequestDTO;
 import org.doit.sistticket.orders.dto.OrdersDetailResponseDTO;
 import org.doit.sistticket.orders.dto.OrdersResponseDTO;
@@ -54,21 +55,19 @@ public class OrdersController {
 	}
 	
 	@PostMapping
-	public OrdersResponseDTO createOrder(
+	public OrderCreateResponseDTO createOrder(
 			@RequestBody OrdersCreateRequestDTO request
 			,@AuthenticationPrincipal CustomerUserDetails userDetails) {
 		
 		Long memberId = userDetails.getMember().getMemberId();
 		
-		Orders order = ordersService.createOrder(
-				memberId
-				, request.getPerformanceId()
-				, request.getPerformanceSeatIds()
-				, request.getPaymentMethod()
-				, request.getHoldToken()
-				);
-		
-		return new OrdersResponseDTO(order);
+		return ordersService.createOrder(
+		        memberId,
+		        request.getPerformanceId(),
+		        request.getPerformanceSeatIds(),
+		        request.getPaymentMethod(),
+		        request.getHoldToken()
+		);
 	}
 	
 	
