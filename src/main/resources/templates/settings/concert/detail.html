@@ -49,7 +49,7 @@
         <div class="row bg-white p-4 rounded shadow-sm mb-4">
             <!-- 좌측: 공연 포스터 -->
             <div class="col-md-4 text-center">
-                <img th:src="${concert.imgUrl}" class="img-fluid rounded shadow" alt="공연 포스터" style="max-height: 400px; object-fit: cover;">
+                <img th:src="${concert?.imgUrl != null && concert.imgUrl != '' ? concert.imgUrl : '/images/brand/sist-ticket-logo-v1.png'}" class="img-fluid rounded shadow" alt="공연 포스터" style="max-height: 400px; object-fit: cover;">
             </div>
             
             <!-- 우측: 상세 정보 및 예매 요약 -->
@@ -145,7 +145,8 @@
 							    </div>
 
 							    <!-- 일반 사용자용 좌석 선택 버튼 -->
-							    <a th:href="@{/reservation/seat(performanceId=${perf.performanceId})}" class="btn btn-primary btn-sm px-4">좌석 선택하기</a>
+							   <!--  <a th:href="@{/reservation/seat(performanceId=${perf.performanceId})}" class="btn btn-primary btn-sm px-4">좌석 선택버튼</a> -->
+							    <a th:href="@{#}" class="btn btn-primary btn-sm px-4">좌석 선택버튼</a>
 							</div>
                         </div>
                     </div>

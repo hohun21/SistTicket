@@ -32,9 +32,15 @@ public class PerformanceServiceImpl implements PerformanceService {
         Concert concert = concertRepository.findById(concertId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘서트입니다."));
 
+        
+        //  해당 콘서트의 기존 최대 회차 번호 조회 
+        Integer maxSeq = performancesRepository.findMaxSeqByConcertId(concertId);
+        int nextSeq = (maxSeq == null) ? 1 : maxSeq + 1;
+        
         // 1. 회차(Performances) 정보 저장
         Performances performance = Performances.builder()
                 .concert(concert)
+                .performanceSeq(nextSeq)
                 .performanceDate(dto.getPerformanceDate())
                 .bookingStart(dto.getBookingStart())
                 .bookingEnd(dto.getBookingEnd())
