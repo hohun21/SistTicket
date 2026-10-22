@@ -54,18 +54,13 @@ public class ConcertController {
 	    return "concert/list_customer";
 	}
 	
-    // 상세 보기 페이지 요청
+    // 상세 보기 페이지 요청 
     @GetMapping("/concert/{id}")
-    public String concertDetail(@PathVariable("id") Long concertId, Model model) {
-    	 log.info("==> 콘서트 상세보기: " + concertId);
-        // ConcertService를 통해 콘서트 + 회차 + 캐스팅이 모두 담긴 상세 DTO
-        ConcertDetailResponseDTO concertDetail = concertService.getDetail(concertId);
-        
-        model.addAttribute("concert", concertDetail);
-        
-        return "concert/detail"; // src/main/resources/templates/concert/detail.html
+    public String concertDetail(@PathVariable("id") Long concertId) {
+    	log.info("==> 콘서트 상세보기: " + concertId);
+    	
+        return "redirect:http://localhost:5173/concert/" + concertId;
     }
-    
     
     // 관리자 상세 보기 페이지 요청
     @GetMapping("settings/concert/{id}")
