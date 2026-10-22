@@ -78,7 +78,9 @@ public class ConcertController {
     @GetMapping("settings/concert/new")
     public String concertForm(Model model) {
         log.info("==> 관리자 콘서트 등록 폼 페이지 요청");
-        
+        ConcertDetailResponseDTO emptyConcert = new ConcertDetailResponseDTO();
+        emptyConcert.setStatus(org.doit.sistticket.category.entity.ConcertStatus.UPCOMING); // 기본 상태값
+        model.addAttribute("concert", emptyConcert);
         // 폼에서 셀렉트박스로 고를 수 있게 장소와 장르 목록을 모델에 담아줍니다.
         // (venueRepository, genreRepository를 주입받아 사용하거나 service를 통해 가져옵니다)
         model.addAttribute("venues", venueService.getVenueList()); // 또는 venueRepository.findAll()

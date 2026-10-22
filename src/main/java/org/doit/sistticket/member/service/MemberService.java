@@ -1,9 +1,7 @@
 package org.doit.sistticket.member.service;
 
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.doit.sistticket.admin.domain.AdminMemberDTO;
@@ -13,6 +11,7 @@ import org.doit.sistticket.member.domain.MemberDTO;
 import org.doit.sistticket.member.domain.MemberRequestDTO;
 import org.doit.sistticket.member.domain.MemberResponseDTO;
 import org.doit.sistticket.member.entity.Members;
+import org.doit.sistticket.member.entity.Role;
 import org.doit.sistticket.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +36,7 @@ public class MemberService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
                 .phone(request.getPhone())
+                .roles(new HashSet<>(Set.of(Role.USER)))
                 .status(1) 
                 .build();
         Members savedMember = memberrepository.save(member);
@@ -139,5 +139,9 @@ public class MemberService {
     	successResult.put("message", "회원 정보가 성공적으로 수정되었습니다.");
     	
     	return successResult;
+    }
+    // 중복체크
+    public boolean isEmailAvailable(String email) {
+        return !this.memberrepository.existsByEmail(email);
     }
 }

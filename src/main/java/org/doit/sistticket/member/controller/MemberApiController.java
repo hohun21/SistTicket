@@ -56,4 +56,15 @@ public class MemberApiController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // email 중복확인
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(
+            @RequestParam("email") String email
+    ){
+        boolean available = memberservice.isEmailAvailable(email);
+
+        return ResponseEntity.ok(
+                Map.of("available", available)
+        );
+    }
 }
