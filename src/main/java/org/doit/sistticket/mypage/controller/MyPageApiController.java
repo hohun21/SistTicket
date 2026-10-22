@@ -23,6 +23,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -225,5 +226,26 @@ public class MyPageApiController {
 	        "tickets", ticketList
 	    ));
 	}
+	
+	@PostMapping("/tickets/cancel/{orderDetailId}")
+    public ResponseEntity<?> cancelTicket(
+            @PathVariable("orderDetailId") Long orderDetailId, 
+            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+        
+        Long memberId = userDetails.getMember().getMemberId();
+        
+        try {
+            myPageService.cancelMyTicket(orderDetailId, memberId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true, 
+                    "message", "예매가 성공적으로 취소되었습니다."
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, 
+                    "message", e.getMessage()
+            ));
+        }
+    }
 	
 }

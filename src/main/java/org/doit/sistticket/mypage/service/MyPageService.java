@@ -19,4 +19,8 @@ public interface MyPageService {
 	boolean checkPassword(Long memberId, String password);
 	
 	Page<ReviewDTO> getMyReviewList (Long memberId, Pageable pageable);
+	
+	void cancelMyTicket(Long orderDetailId, Long memberId);
+	
+	
 }
