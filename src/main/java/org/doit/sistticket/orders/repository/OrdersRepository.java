@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.doit.sistticket.admin.domain.AdminReservationDTO;
 import org.doit.sistticket.orders.entity.Orders;
+import org.doit.sistticket.orders.enums.OrdersDetailStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -53,6 +54,34 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
         ORDER BY o.createdAt DESC
     """)
     List<AdminReservationDTO> findAllReservations();
+
+    @Query("""
+    SELECT new org.doit.sistticket.admin.domain.AdminReservationDTO(
+        o.ordersId,
+        o.orderNo,
+        m.memberId,
+        m.name,
+        c.concertName,
+        o.createdAt,
+        o.totalAmount,
+        CAST(pay.status AS string)
+    )
+    FROM Orders o
+    JOIN o.member m
+    JOIN o.performance per
+    JOIN per.concert c
+    LEFT JOIN Payments pay ON pay.orders = o
+    WHERE EXISTS (
+        SELECT od.orderDetailId
+        FROM OrdersDetail od
+        WHERE od.orders = o
+          AND od.status = :status
+    )
+    ORDER BY o.createdAt DESC
+""")
+    List<AdminReservationDTO> findCancellationReservations(
+            @Param("status")OrdersDetailStatus status
+            );
 
     boolean existsByHoldToken(String holdToken);
 

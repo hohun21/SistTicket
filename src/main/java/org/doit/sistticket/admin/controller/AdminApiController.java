@@ -49,7 +49,12 @@ public class AdminApiController {
         List<AdminReservationDTO> rdto = this.ordersService.getAllReservations();
         return ResponseEntity.ok(rdto);
     }
-
+    @GetMapping("/reservation-cancellations")
+    public ResponseEntity<List<AdminReservationDTO>> selectCancellres(){
+        List<AdminReservationDTO> rcdto =
+                this.ordersService.getCancellationReservations();
+        return ResponseEntity.ok(rcdto);
+    }
     @GetMapping("/reservations/{ordersId}")
     public ResponseEntity<List<AdminReservationDetailDTO>> getresdetail
             (@PathVariable("ordersId") Long ordersId){
@@ -57,4 +62,22 @@ public class AdminApiController {
                 this.ordersService.getAllReservationDetails(ordersId);
         return ResponseEntity.ok(rddto);
     }
+    @GetMapping("/reservation-cancellations/{reservationId}")
+    public ResponseEntity<List<AdminReservationDetailDTO>> getrescanceldetail
+            (@PathVariable("reservationId") Long reservationId){
+        List<AdminReservationDetailDTO> rdcdto =
+                this.ordersService.getCancellationReservationDetails(reservationId);
+        return ResponseEntity.ok(rdcdto);
+    }
+    @PatchMapping("/reservation-cancellations/{orderDetailId}/approve")
+    public ResponseEntity<Integer> approveCancellation(
+            @PathVariable Long orderDetailId
+    ){
+        int updated = this.ordersService.cancelReservations(orderDetailId);
+        if(updated == 0){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
 }

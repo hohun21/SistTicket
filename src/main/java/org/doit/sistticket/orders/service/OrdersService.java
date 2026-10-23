@@ -427,9 +427,32 @@ public class OrdersService {
 	public List<AdminReservationDTO> getAllReservations() {
 		return ordersRepository.findAllReservations();
 	}
+	// 관리자 취소표 조회용 서비스
+	public List<AdminReservationDTO> getCancellationReservations() {
+		return ordersRepository.findCancellationReservations(
+				OrdersDetailStatus.CANCELREQUEST
+		);
+	}
 	// 관리자 모든 예매내역 상세 조회용 서비스
 	public List<AdminReservationDetailDTO> getAllReservationDetails(Long ordersId) {
 		return this.ordersDetailRepository.findReservationDetails(ordersId);
 	}
+	// 관리자 취소표 상세 조회용 서비스
+	public List<AdminReservationDetailDTO> getCancellationReservationDetails(
+			Long ordersId
+	) {
+		return ordersDetailRepository.findCancellationReservationDetails(
+				ordersId,
+				OrdersDetailStatus.CANCELREQUEST
+		);
+	}
 
+	@Transactional
+	public int cancelReservations(Long ordersId) {
+		int updated = this.ordersDetailRepository.approveCancellation(ordersId);
+		if(updated == 0){
+			throw new IllegalArgumentException("해당 주문 상세 정보를 찾을 수 없습니다.");
+		}
+		return updated;
+	}
 } // OrderService

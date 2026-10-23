@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 public class AdminReservationDetailDTO {
-
+    private Long ordersDetailId;
     private String seatGrade;
     private Integer performancesSeq;
     private String rowLabel;

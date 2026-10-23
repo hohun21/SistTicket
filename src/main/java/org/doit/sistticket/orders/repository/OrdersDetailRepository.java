@@ -6,6 +6,7 @@ import org.doit.sistticket.admin.domain.AdminReservationDetailDTO;
 import org.doit.sistticket.orders.entity.OrdersDetail;
 import org.doit.sistticket.orders.enums.OrdersDetailStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -39,13 +40,15 @@ public interface OrdersDetailRepository extends JpaRepository<OrdersDetail, Long
 
     // 관리자용 예매 상세 조회
     @Query("""
-                SELECT
+                SELECT new org.doit.sistticket.admin.domain.AdminReservationDetailDTO(
+                    od.orderDetailId,
                     sg.gradeName,
                     p.performanceSeq,
                     s.rowLabel,
                     s.seatNumber,
                     od.status,
                     od.price
+                )
                 FROM OrdersDetail od
                 JOIN od.performanceSeat ps
                 JOIN ps.performance p
@@ -56,4 +59,36 @@ public interface OrdersDetailRepository extends JpaRepository<OrdersDetail, Long
     List<AdminReservationDetailDTO> findReservationDetails(
             @Param("ordersId") Long ordersId
     );
+
+    @Query("""
+                SELECT new org.doit.sistticket.admin.domain.AdminReservationDetailDTO(
+                    od.orderDetailId,
+                    sg.gradeName,
+                    p.performanceSeq,
+                    s.rowLabel,
+                    s.seatNumber,
+                    od.status,
+                    od.price
+                )
+                FROM OrdersDetail od
+                JOIN od.performanceSeat ps
+                JOIN ps.performance p
+                JOIN ps.seat s
+                JOIN s.seatGrade sg
+                WHERE od.orders.ordersId = :ordersId
+                  AND od.status = :status
+            """)
+    List<AdminReservationDetailDTO> findCancellationReservationDetails(
+            @Param("ordersId") Long ordersId,
+            @Param("status") OrdersDetailStatus status
+    );
+
+    // 취소 승인
+    @Modifying
+    @Query("""
+                UPDATE OrdersDetail od 
+                SET od.status = org.doit.sistticket.orders.enums.OrdersDetailStatus.CANCELLED
+                WHERE od.orderDetailId =:orderDetailId       
+            """)
+    int approveCancellation(@Param("orderDetailId") Long orderDetailId);
 } // 리파지토리
