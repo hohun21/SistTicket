@@ -41,17 +41,10 @@ public class ConcertController {
 	    return "settings/concert";
 	}
 	
-	
 	@GetMapping("/concert/list")
-	public String concertList(
-	        @ModelAttribute("searchDTO") ConcertPageRequestDTO searchDTO,
-	        Model model) {
-	    
-	    Page<ConcertListResponseDTO> concertList = concertService.getConcertList(searchDTO);
-	    model.addAttribute("concertList", concertList);
-	    model.addAttribute("genres", genreService.getGenreList());
-	    
-	    return "concert/list_customer";
+	public String concertList() {
+		
+	    return "redirect:http://localhost:5173/concert/list";
 	}
 	
     // 상세 보기 페이지 요청 
