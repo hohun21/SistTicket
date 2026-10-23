@@ -132,6 +132,8 @@
 	</body>
 
     <script th:inline="javascript">
+        const isAdmin = /*[[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]]*/ false;
+
         document.addEventListener("DOMContentLoaded", function() {
             const concertId = /*[[${concert.concertId}]]*/ 0;
             
@@ -152,13 +154,19 @@
                         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
                         const date = review.createdAt ? review.createdAt.substring(0, 10) : '';
 
+                        let deleteBtnHtml = '';
+                        if (isAdmin) {
+                            deleteBtnHtml = `<button class="btn btn-sm btn-outline-danger py-0 px-2 ms-3" onclick="deleteReview(${review.reviewId})">삭제</button>`;
+                        }
+
                         let html = `
-                            <div class="card mb-3 border-0 border-bottom rounded-0 pb-3">
+                            <div class="card mb-3 border-0 border-bottom rounded-0 pb-3" id="review-card-${review.reviewId}">
                                 <div class="card-body p-0">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
                                             <span class="text-warning fs-5 me-2">${stars}</span>
                                             <span class="fw-bold">${review.memberName || '익명'}</span>
+                                            ${deleteBtnHtml}
                                         </div>
                                         <span class="text-muted small">${date}</span>
                                     </div>
@@ -177,6 +185,34 @@
                     document.getElementById('review-list-area').innerHTML = '<div class="text-center py-4 text-danger">리뷰를 불러오는 중 오류가 발생했습니다.</div>';
                 });
         });
+
+        function deleteReview(reviewId) {
+            if (!window.confirm("관리자 권한으로 이 리뷰를 정말 삭제하시겠습니까?")) {
+                return;
+            }
+
+            fetch(`/api/admin/reviews/${reviewId}`, {
+                method: 'DELETE',
+                credentials: 'include' // 세션(로그인 정보) 유지
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('리뷰가 성공적으로 삭제되었습니다.');
+                    // 새로고침 대신 화면에서 해당 리뷰 영역만 즉시 제거하여 부드럽게 동작
+                    const reviewElement = document.getElementById(`review-card-${reviewId}`);
+                    if (reviewElement) {
+                        reviewElement.remove();
+                    }
+                } else {
+                    alert(result.message || '리뷰 삭제에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('서버와 통신 중 오류가 발생했습니다.');
+            });
+        }
     </script>
 </body>
 </html>

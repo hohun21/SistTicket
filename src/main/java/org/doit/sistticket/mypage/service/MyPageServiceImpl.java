@@ -62,7 +62,7 @@ public class MyPageServiceImpl implements MyPageService {
 
 			if (detail.getStatus() == OrdersDetailStatus.CANCELLED) {
 				buttonStatus = "CANCELED";
-			} else if (detail.getStatus() == OrdersDetailStatus.CANCELEREQUEST) {
+			} else if (detail.getStatus() == OrdersDetailStatus.CANCELREQUEST) {
 				buttonStatus = "CANCEL_REQUESTED"; 
 			} else if (detail.getStatus() == OrdersDetailStatus.CONFIRMED) {
 				if (now.isAfter(concertDate)) {
@@ -159,7 +159,7 @@ public class MyPageServiceImpl implements MyPageService {
 			throw new IllegalStateException("이미 취소된 예매 내역입니다.");
 		}
 		
-		if (orderDetail.getStatus() == OrdersDetailStatus.CANCELEREQUEST) {
+		if (orderDetail.getStatus() == OrdersDetailStatus.CANCELREQUEST) {
 			throw new IllegalStateException("이미 취소 요청 중인 예매 내역입니다.");
 		}
 

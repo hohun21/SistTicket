@@ -5,5 +5,5 @@ public enum OrdersDetailStatus {
 	CONFIRMED,		// 결제 성공, 예약 확정
 	CANCELLED,		// 주문 취소
 	EXPIRED,		// 결제 유효 시간 만료
-	CANCELEREQUEST
+	CANCELREQUEST
 }

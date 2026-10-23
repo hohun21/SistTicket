@@ -80,7 +80,7 @@ public class OrdersDetail {
     }
     
     public void cancelRequest() {
-        this.status = OrdersDetailStatus.CANCELEREQUEST;
+        this.status = OrdersDetailStatus.CANCELREQUEST;
     }
     
 } // class
