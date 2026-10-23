@@ -79,5 +79,22 @@ public class AdminApiController {
         }
         return ResponseEntity.ok(updated);
     }
+    @PatchMapping("/reservation-cancellations/{orderDetailId}/reject")
+    public ResponseEntity<Integer> rejectCancellation(
+            @PathVariable Long orderDetailId
+    ){
+        int updated = this.ordersService.rejectCancellation(orderDetailId);
+        if(updated == 0){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+    @GetMapping("/topconcert")
+    public ResponseEntity<List<AdminTopConcertDTO>> getTopConcert(){
+        List<AdminTopConcertDTO> cdto =
+                this.adminService.getTopConcert();
+        return ResponseEntity.ok(cdto);
+    }
+
 
 }

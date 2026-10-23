@@ -2,6 +2,7 @@ package org.doit.sistticket.category.repository;
 
 import java.util.List;
 
+import org.doit.sistticket.admin.domain.AdminTopConcertDTO;
 import org.doit.sistticket.category.entity.Concert;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +34,31 @@ public interface ConcertRepository extends JpaRepository<Concert,Long>{
             Pageable pageable);
     
     List<Concert> findTop4ByOrderByConcertIdDesc();
+
+    // 통계용
+    @Query("""
+           SELECT count(c)
+           FROM Concert c
+           WHERE c.status != org.doit.sistticket.category.entity.ConcertStatus.ISCANCELED
+                """)
+    Long countBystatus();
+    @Query("""
+    SELECT new org.doit.sistticket.admin.domain.AdminTopConcertDTO(
+        c.concertId,
+        c.concertName,
+        ci.imgUrl,
+        g.genreName
+    )
+    FROM Concert c
+    JOIN Performances p ON p.concert = c
+    JOIN Orders o ON o.performance = p
+    JOIN OrdersDetail od ON od.orders = o
+    LEFT JOIN ConcertImg ci
+        ON ci.concert = c
+        AND ci.isThumbnail = true
+    JOIN c.genre g
+    GROUP BY c.concertId, c.concertName, ci.imgUrl, g.genreName
+    ORDER BY SUM(od.price) DESC
+    """)
+    List<AdminTopConcertDTO> findTopConcertsBySales();
 }

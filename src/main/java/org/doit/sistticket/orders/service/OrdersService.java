@@ -446,7 +446,7 @@ public class OrdersService {
 				OrdersDetailStatus.CANCELREQUEST
 		);
 	}
-
+	// 취소 승인 서비스
 	@Transactional
 	public int cancelReservations(Long ordersId) {
 		int updated = this.ordersDetailRepository.approveCancellation(ordersId);
@@ -454,5 +454,14 @@ public class OrdersService {
 			throw new IllegalArgumentException("해당 주문 상세 정보를 찾을 수 없습니다.");
 		}
 		return updated;
+	}
+	// 취소 반려 서비스
+	@Transactional
+	public int rejectCancellation(Long orderDetailId) {
+		int updated = this.ordersDetailRepository.rejectCancellation(orderDetailId);
+		if(updated == 0){
+			throw new IllegalArgumentException("해당 주문 상세 정보를 찾을 수 없습니다.");
+		}
+		 return updated;
 	}
 } // OrderService

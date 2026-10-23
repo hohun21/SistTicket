@@ -23,4 +23,11 @@ public interface MemberRepository extends JpaRepository<Members,Long> {
     );
 
     boolean existsByEmail(String email);
+
+    @Query("""
+            SELECT count(m)
+            FROM members m
+            WHERE m.status = 1 
+        """)
+    Long countByStatus();
 }

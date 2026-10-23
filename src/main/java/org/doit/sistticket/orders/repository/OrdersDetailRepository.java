@@ -91,4 +91,27 @@ public interface OrdersDetailRepository extends JpaRepository<OrdersDetail, Long
                 WHERE od.orderDetailId =:orderDetailId       
             """)
     int approveCancellation(@Param("orderDetailId") Long orderDetailId);
+    // 반려
+    @Modifying
+    @Query("""
+                UPDATE OrdersDetail od
+                    SET od.status = org.doit.sistticket.orders.enums.OrdersDetailStatus.CONFIRMED
+                        WHERE od.orderDetailId = :orderDetailId
+            """)
+    int rejectCancellation(@Param("orderDetailId") Long orderDetailId);
+
+    // 통계
+    @Query("""
+            SELECT count(o)
+            FROM OrdersDetail o
+            WHERE o.status = org.doit.sistticket.orders.enums.OrdersDetailStatus.CONFIRMED
+        """)
+    Long countBystatus();
+    // 매출 통계
+    @Query("""
+            SELECT SUM(o.price)
+            FROM OrdersDetail o
+            WHERE o.status = org.doit.sistticket.orders.enums.OrdersDetailStatus.CONFIRMED
+        """)
+    Long countPrice();
 } // 리파지토리
