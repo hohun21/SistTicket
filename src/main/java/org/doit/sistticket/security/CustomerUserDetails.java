@@ -38,14 +38,8 @@ public class CustomerUserDetails implements UserDetails {
     }
 
     @Override
-    public boolean isEnabled() {
-        // 1: 정상 회원만 활성화
-        return member.getStatus() == 1;
-    }
-
+    // 정상 회원만 활성화
+    public boolean isEnabled() { return member.getStatus() == 1;}
     @Override
-    public boolean isAccountNonLocked() {
-        // -1: 정지회원은 잠금 처리
-        return member.getStatus() != -1;
-    }
+    public boolean isAccountNonLocked() { return member.getStatus() != -1;}
 }

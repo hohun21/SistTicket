@@ -2,7 +2,7 @@
 package org.doit.sistticket.config;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.DisabledException;
@@ -15,13 +15,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final ObjectMapper objectMapper;
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -78,16 +82,18 @@ public class SecurityConfig {
                     if (exception instanceof LockedException) {
                         code = "SUSPENDED";
                         message = "정지된 계정입니다. 관리자에게 문의 주세요.\n"
-                            + "Tel. 010-9341-6553";
+                                + "Tel. 010-9341-6553";
                     } else if (exception instanceof DisabledException) {
                         code = "INACTIVE";
-                        message = "탈퇴했거나 비정상적인 행위로 인해 "
-                            + "삭제된 계정입니다.";
+                        message = "탈퇴했거나 비정상적인 행위로 인해 삭제된 계정입니다.";
                     }
 
-                    res.getWriter().write(
-                        "{\"code\":\"" + code
-                            + "\",\"message\":\"" + message + "\"}"
+                    objectMapper.writeValue(
+                            res.getWriter(),
+                            Map.of(
+                                    "code", code,
+                                    "message", message
+                            )
                     );
                 })
                 .permitAll()

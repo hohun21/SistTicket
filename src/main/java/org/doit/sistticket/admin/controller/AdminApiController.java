@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.doit.sistticket.admin.domain.*;
 import org.doit.sistticket.admin.service.AdminService;
 import org.doit.sistticket.member.domain.MemberDTO;
+import org.doit.sistticket.member.entity.Members;
 import org.doit.sistticket.member.service.MemberService;
 import org.doit.sistticket.orders.service.OrdersService;
 import org.doit.sistticket.review.service.ReviewService;
+import org.doit.sistticket.security.CustomerUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +26,25 @@ public class AdminApiController {
     private final OrdersService ordersService;
     private final ReviewService reviewService;
 
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> getCurrentAdmin(
+            Authentication authentication
+    ) {
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        CustomerUserDetails userDetails =
+                (CustomerUserDetails) authentication.getPrincipal();
+
+        Members member = userDetails.getMember();
+
+        return ResponseEntity.ok(Map.of(
+                "name", member.getName(),
+                "email", member.getEmail()
+        ));
+    }
     @GetMapping("/dashboard")
     public AdminDashBoardDTO dashBoardDTO(){
         return adminService.getDashboard();
