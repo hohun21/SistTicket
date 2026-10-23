@@ -5,52 +5,187 @@
     <title>SistTicket - 배우 관리</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin-primary: #7456df;
+            --admin-primary-hover: #6243cf;
+            --admin-bg-light: #f0eaff;
+            --admin-border: #e8ebf2;
+            --admin-text-dark: #202938;
+            --admin-text-muted: #7b8497;
+        }
+        body {
+            background-color: #f8f9fc;
+            color: var(--admin-text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        .btn-back {
+            padding: 8px 16px;
+            background-color: #ffffff;
+            color: #495057;
+            border: 1px solid var(--admin-border);
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(25, 35, 60, 0.02);
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-back:hover {
+            background-color: #f5f5fa;
+            color: var(--admin-primary);
+            border-color: #dcdff0;
+        }
+
+        .btn-theme-primary {
+            background: var(--admin-primary);
+            border: none;
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 10px 20px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-theme-primary:hover {
+            background: var(--admin-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(116, 86, 223, 0.25);
+        }
+
+        .members-toolbar-card {
+            background: #ffffff;
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(25, 35, 60, 0.03);
+            padding: 20px;
+        }
+
+        .members-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .members-table thead th {
+            padding: 15px 18px;
+            background: #f8f9fc;
+            border-bottom: 1px solid var(--admin-border);
+            color: var(--admin-text-muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .members-table tbody td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #eff1f6;
+            color: #495467;
+            font-size: 13px;
+        }
+        .members-table tbody tr:hover {
+            background: #fafaff;
+        }
+
+        /* 수정/삭제 버튼 */
+        .btn-action-edit {
+            color: var(--admin-primary);
+            background: var(--admin-bg-light);
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+        }
+        .btn-action-edit:hover {
+            background: #e4dcff;
+        }
+        .btn-action-delete {
+            color: #d14343;
+            background: #fff0f0;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+        }
+        .btn-action-delete:hover {
+            background: #ffe2e2;
+        }
+
+        /* 모달 스타일 통일 */
+        .modal-content {
+            border-radius: 16px;
+            border: 1px solid var(--admin-border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        .modal-header {
+            background: var(--admin-primary) !important;
+            border-bottom: 1px solid var(--admin-border);
+            padding: 18px 24px;
+        }
+        .pagination .page-item .page-link {
+            color: #53647b;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 0 3px;
+            border: 1px solid var(--admin-border);
+        }
+        .pagination .page-item.active .page-link {
+            background: var(--admin-primary);
+            border-color: var(--admin-primary);
+            color: #ffffff;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
+
+<div class="container py-4" style="max-width: 1100px;">
     <!-- 관리홈으로 가기 -->
-    <div>
-	    <a th:href="@{/settings/main}" style="text-decoration: none;">
-	        <button type="button" 
-	                style="padding: 6px 14px; background-color: #f8f9fa; color: #495057; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
-	                onmouseover="this.style.backgroundColor='#e2e6ea'; this.style.borderColor='#adb5bd';"
-	                onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#ced4da';">
-	            <i class="fa-solid fa-arrow-left me-1"></i> 이전으로
-	        </button>
-	    </a>
+    <div class="mb-3">
+        <a th:href="@{http://localhost:5173/admin/settings/main}" style="text-decoration: none;">
+            <button type="button" class="btn-back">
+                <i class="fa-solid fa-arrow-left me-1"></i> 이전으로
+            </button>
+        </a>
     </div>
-<div class="container py-5">
+
     <!-- 페이지 타이틀 & 상단 액션 바 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark mb-1">🎭 배우 관리</h2>
+            <h2 class="fw-bold mb-1" style="font-size: 26px; letter-spacing: -0.8px;">🎭 배우 관리</h2>
             <p class="text-muted small mb-0">공연에 출연하는 배우 및 아티스트 정보를 관리합니다.</p>
         </div>
         <!-- 우측 상단 등록 버튼 (모달 호출) -->
-        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#actorRegisterModal">
-            <i class="fa-solid fa-plus me-1"></i> 새 배우 등록
+        <button class="btn-theme-primary" data-bs-toggle="modal" data-bs-target="#actorRegisterModal">
+            <i class="fa-solid fa-plus me-1.5"></i> 새 배우 등록
         </button>
     </div>
 
     <!-- 검색 및 목록 카드 -->
-    <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+    <div class="members-toolbar-card">
         
         <!-- 검색 폼 -->
         <div class="row mb-3 justify-content-between align-items-center">
             <div class="col-auto">
-                <span class="text-muted small">총 <strong class="text-primary" th:text="${actorPage.totalElements}">0</strong>명의 배우가 등록되어 있습니다.</span>
+                <span class="text-muted small">총 <strong style="color: var(--admin-primary);" th:text="${actorPage.totalElements}">0</strong>명의 배우가 등록되어 있습니다.</span>
             </div>
             <div class="col-md-4">
                 <form th:action="@{/settings/actor}" method="get" class="input-group input-group-sm">
-                    <input type="text" name="keyword" class="form-control" placeholder="배우 이름 검색" th:value="${keyword}">
-                    <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-search"></i> 검색</button>
+                    <input type="text" name="keyword" class="form-control" style="height: 38px; border-radius: 8px 0 0 8px !important;" placeholder="배우 이름 검색" th:value="${keyword}">
+                    <button class="btn-theme-primary px-3" style="height: 38px; border-radius: 0 8px 8px 0 !important;" type="submit"><i class="fa-solid fa-search"></i></button>
                 </form>
             </div>
         </div>
 
         <!-- 테이블 영역 -->
         <div class="table-responsive">
-            <table class="table table-hover align-middle text-center">
-                <thead class="table-light text-secondary small">
+            <table class="table members-table align-middle text-center">
+                <thead>
                     <tr>
                         <th style="width: 10%;">ID</th>
                         <th style="width: 25%;">배우 이름</th>
@@ -66,13 +201,13 @@
                         </td>
                         <td class="text-muted text-start text-truncate" style="max-width: 300px;" th:text="${actor.description ?: '설명 없음'}">설명 내용</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary px-2 py-1 me-1" 
+                            <button class="btn-action-edit me-1" 
                                     th:onclick="updateActor([[${actor.actorId}]], [[${actor.actorName}]], [[${actor.description}]])">
-                                <i class="fa-solid fa-pen-to-square"></i> 수정
+                                <i class="fa-solid fa-pen-to-square me-1"></i> 수정
                             </button>
-                            <button class="btn btn-sm btn-outline-danger px-2 py-1" 
+                            <button class="btn-action-delete" 
                                     th:onclick="deleteActor([[${actor.actorId}]])">
-                                <i class="fa-solid fa-trash"></i> 삭제
+                                <i class="fa-solid fa-trash me-1"></i> 삭제
                             </button>
                         </td>
                     </tr>
@@ -104,26 +239,26 @@
 <!-- [모달] 새 배우 등록 팝업 -->
 <div class="modal fade" id="actorRegisterModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
+        <div class="modal-content">
+            <div class="modal-header text-white">
                 <h5 class="modal-title fs-6"><i class="fa-solid fa-user-plus me-1"></i> 새 배우 등록</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <!-- 컨트롤러의 /settings/actor/new 로 form 전송 -->
             <form th:action="@{/settings/actor/new}" method="post">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">배우 이름</label>
-                        <input type="text" name="actorName" class="form-control" placeholder="배우 이름을 입력하세요" required>
+                        <label class="form-label fw-bold small text-secondary">배우 이름</label>
+                        <input type="text" name="actorName" class="form-control" style="border-radius: 8px; height: 40px;" placeholder="배우 이름을 입력하세요" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">배우 설명</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="배우에 대한 간단한 설명을 입력하세요"></textarea>
+                        <label class="form-label fw-bold small text-secondary">배우 설명</label>
+                        <textarea name="description" class="form-control" style="border-radius: 8px;" rows="3" placeholder="배우에 대한 간단한 설명을 입력하세요"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
-                    <button type="submit" class="btn btn-primary btn-sm">등록하기</button>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-2" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn-theme-primary py-2 px-3">등록하기</button>
                 </div>
             </form>
         </div>
