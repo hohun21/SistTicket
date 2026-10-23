@@ -193,16 +193,16 @@
         <ul class="nav nav-pills nav-pills-custom gap-2 flex-wrap justify-content-center">
             <li class="nav-item">
                 <a class="nav-link" th:classappend="${searchDTO.genreId == null} ? 'active' : ''" 
-                   th:href="@{/settings/concert}">전체보기</a>
+                   th:href="@{/settings/concert(searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">전체보기</a>
             </li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 1} ? 'active' : ''" th:href="@{/settings/concert(genreId=1)}">아이돌</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 2} ? 'active' : ''" th:href="@{/settings/concert(genreId=2)}">발라드/R&B</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 3} ? 'active' : ''" th:href="@{/settings/concert(genreId=3)}">힙합/EDM</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 4} ? 'active' : ''" th:href="@{/settings/concert(genreId=4)}">페스티벌</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 5} ? 'active' : ''" th:href="@{/settings/concert(genreId=5)}">인디/록</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 6} ? 'active' : ''" th:href="@{/settings/concert(genreId=6)}">내한</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 7} ? 'active' : ''" th:href="@{/settings/concert(genreId=7)}">뮤지컬</a></li>
-            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 8} ? 'active' : ''" th:href="@{/settings/concert(genreId=8)}">연극</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 1} ? 'active' : ''" th:href="@{/settings/concert(genreId=1, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">아이돌</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 2} ? 'active' : ''" th:href="@{/settings/concert(genreId=2, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">발라드/R&B</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 3} ? 'active' : ''" th:href="@{/settings/concert(genreId=3, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">힙합/EDM</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 4} ? 'active' : ''" th:href="@{/settings/concert(genreId=4, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">페스티벌</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 5} ? 'active' : ''" th:href="@{/settings/concert(genreId=5, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">인디/록</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 6} ? 'active' : ''" th:href="@{/settings/concert(genreId=6, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">내한</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 7} ? 'active' : ''" th:href="@{/settings/concert(genreId=7, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">뮤지컬</a></li>
+            <li class="nav-item"><a class="nav-link" th:classappend="${searchDTO.genreId == 8} ? 'active' : ''" th:href="@{/settings/concert(genreId=8, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">연극</a></li>
         </ul>
     </div> 
 
@@ -251,7 +251,27 @@
         </th:block>
     </div>
 
-    <!-- 페이징 네비게이션바 -->
+   <!-- 페이징 네비게이션바 -->
     <nav th:if="${concertList.totalPages > 0}" class="mt-4">
         <ul class="pagination justify-content-center">
+            <!-- 이전 페이지 -->
             <li class="page-item" th:classappend="${concertList.first} ? 'disabled'">
+                <a class="page-link shadow-sm px-3 py-2" 
+                   th:href="@{/settings/concert(page=${concertList.number - 1}, genreId=${searchDTO.genreId}, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">이전</a>
+            </li>
+            
+            <!-- 페이지 번호 목록 -->
+            <li class="page-item" th:each="num : ${#numbers.sequence(0, concertList.totalPages - 1)}" 
+                th:classappend="${num == concertList.number} ? 'active'">
+                <a class="page-link shadow-sm px-3 py-2" 
+                   th:href="@{/settings/concert(page=${num}, genreId=${searchDTO.genreId}, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}" 
+                   th:text="${num + 1}">1</a>
+            </li>
+            
+            <!-- 다음 페이지 -->
+            <li class="page-item" th:classappend="${concertList.last} ? 'disabled'">
+                <a class="page-link shadow-sm px-3 py-2" 
+                   th:href="@{/settings/concert(page=${concertList.number + 1}, genreId=${searchDTO.genreId}, searchKeyword=${searchDTO.searchKeyword}, type=${searchDTO.type})}">다음</a>
+            </li>
+        </ul>
+    </nav>

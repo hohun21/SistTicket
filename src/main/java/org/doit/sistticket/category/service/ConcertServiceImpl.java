@@ -296,7 +296,7 @@ public class ConcertServiceImpl implements ConcertService {
         // 2. 외래 키 충돌 방지를 위해 연관된 이미지 DB 기록 먼저 삭제
         concertImgRepository.deleteByConcert_ConcertId(concertId);
 
-     // ② 회차-배역 매핑(PerformanceCast) 먼저 삭제 (회차나 배역을 지우기 전 필수!)
+        // ② 회차-배역 매핑(PerformanceCast) 먼저 삭제 (회차나 배역을 지우기 전 필수!)
         performanceCastRepository.deleteByPerformance_Concert_ConcertId(concertId);
 
         // ③ 회차(Performances) 삭제
