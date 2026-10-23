@@ -6,10 +6,12 @@ import org.doit.sistticket.admin.service.AdminService;
 import org.doit.sistticket.member.domain.MemberDTO;
 import org.doit.sistticket.member.service.MemberService;
 import org.doit.sistticket.orders.service.OrdersService;
+import org.doit.sistticket.review.service.ReviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ public class AdminApiController {
     private final AdminService adminService;
     private final MemberService memberService;
     private final OrdersService ordersService;
+    private final ReviewService reviewService;
 
     @GetMapping("/dashboard")
     public AdminDashBoardDTO dashBoardDTO(){
@@ -56,5 +59,15 @@ public class AdminApiController {
         List<AdminReservationDetailDTO> rddto =
                 this.ordersService.getAllReservationDetails(ordersId);
         return ResponseEntity.ok(rddto);
+    }
+    
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<?> deleteReviewByAdmin(@PathVariable("reviewId") Long reviewId) {
+        try {
+            reviewService.remove(reviewId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "관리자 권한으로 리뷰가 삭제되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "리뷰 삭제에 실패했습니다."));
+        }
     }
 }
