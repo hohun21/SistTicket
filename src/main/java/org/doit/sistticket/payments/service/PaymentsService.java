@@ -211,7 +211,7 @@ public class PaymentsService {
     }
     
     public PaymentResponse getPaymentResponse(Long paymentId, Long memberId) {
-    	Payments payment = paymentsRepository.findById(memberId)
+	Payments payment = paymentsRepository.findById(paymentId)
     										 .orElseThrow(()->new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
     	
     	Orders order = payment.getOrders();

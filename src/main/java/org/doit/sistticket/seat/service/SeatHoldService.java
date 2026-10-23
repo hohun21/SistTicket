@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.doit.sistticket.category.entity.Performances;
+import org.doit.sistticket.category.repository.PerformancesRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,31 +27,46 @@ public class SeatHoldService {
     private final PerformanceSeatRepository performanceSeatRepository;
     private final MemberRepository memberRepository;
     private final OrdersRepository ordersRepository;
+    private final PerformancesRepository performancesRepository;
+    private final SeatBookingPolicy seatBookingPolicy;
 
     // 좌석 선점
     @Transactional
     public SeatHoldResponse holdSeats(
-            Long performanceId
-            , List<Long> performanceSeatIds
-            , Long memberId) {
+            Long performanceId,
+            List<Long> performanceSeatIds,
+            Long memberId) {
 
-        if (performanceSeatIds == null || performanceSeatIds.isEmpty()
-                || performanceSeatIds.contains(null)
-                || new HashSet<>(performanceSeatIds).size() != performanceSeatIds.size()) {
+        if (performanceId == null || performanceId <= 0) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "좌석 목록이 올바르지 않습니다.");
+                    HttpStatus.BAD_REQUEST, "공연 회차 ID가 올바르지 않습니다.");
         }
 
-        List<PerformanceSeat> seats =
-                performanceSeatRepository.findSeatsForHold(
+        // 최대 5매·중복·잘못된 좌석 ID 검증
+        seatBookingPolicy.validateSeats(performanceSeatIds);
+
+        List<PerformanceSeat> seats = performanceSeatRepository.findSeatsForHold(
                         performanceId, performanceSeatIds);
 
         if (seats.size() != performanceSeatIds.size()) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "해당 공연 회차의 좌석을 찾을 수 없습니다.");
+                    HttpStatus.BAD_REQUEST,
+                    "해당 공연 회차의 좌석을 찾을 수 없습니다.");
         }
 
+        Performances performance =
+                performancesRepository.findById(performanceId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "공연 회차를 찾을 수 없습니다."));
+
+        Members member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다."));
+
+        // 좌석 잠금을 기다리는 동안 시간이 지날 수 있으므로 잠금과 조회를 마친 뒤 현재 시각을 확인
         LocalDateTime now = LocalDateTime.now();
+
+        seatBookingPolicy.validatePerformance(performance, now);
 
         for (PerformanceSeat seat : seats) {
             if (!seat.canHold(now)) {
@@ -58,19 +75,17 @@ public class SeatHoldService {
             }
         }
 
-        // 선점 토큰, 선점 기한 발급
         String holdToken = UUID.randomUUID().toString();
         LocalDateTime expiresAt = now.plusMinutes(30);
-        
-        Members member = memberRepository.findById(memberId)
-        								.orElseThrow( () -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
         for (PerformanceSeat seat : seats) {
             seat.hold(holdToken, expiresAt, member);
         }
 
         return new SeatHoldResponse(
-                holdToken, performanceSeatIds, expiresAt);
+                holdToken,
+                performanceSeatIds,
+                expiresAt);
     }
     
     // 좌석 선점 취소

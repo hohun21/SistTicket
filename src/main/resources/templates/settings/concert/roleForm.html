@@ -4,14 +4,131 @@
     <meta charset="UTF-8">
     <title>콘서트 배역 관리</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin-primary: #7456df;
+            --admin-primary-hover: #6243cf;
+            --admin-bg-light: #f0eaff;
+            --admin-border: #e8ebf2;
+            --admin-text-dark: #202938;
+            --admin-text-muted: #7b8497;
+        }
+        body {
+            background-color: #f8f9fc;
+            color: var(--admin-text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .form-card {
+            background: #ffffff;
+            border: 1px solid var(--admin-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(25, 35, 60, 0.03);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        h2 {
+            color: var(--admin-text-dark);
+            font-size: 24px;
+            font-weight: 750;
+            letter-spacing: -0.8px;
+            margin-bottom: 24px;
+        }
+        h4 {
+            font-size: 16px;
+            font-weight: 750;
+            color: var(--admin-text-dark);
+            margin-bottom: 16px;
+        }
+        label, .form-label {
+            font-weight: 700;
+            font-size: 13px;
+            color: #495467;
+            margin-bottom: 6px;
+        }
+        .form-control {
+            height: 42px;
+            border: 1px solid #e0e5ee;
+            border-radius: 9px !important;
+            font-size: 13px;
+            color: #344054;
+        }
+        .form-control:focus {
+            border-color: #8063e7;
+            box-shadow: 0 0 0 3px rgba(128, 99, 231, 0.12);
+        }
+        .btn-theme-primary {
+            background: var(--admin-primary);
+            border: none;
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 10px 20px;
+            transition: all 0.2s ease;
+        }
+        .btn-theme-primary:hover {
+            background: var(--admin-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(116, 86, 223, 0.25);
+        }
+        .btn-theme-secondary {
+            background: #ffffff;
+            color: #53647b;
+            border: 1px solid var(--admin-border);
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-theme-secondary:hover {
+            background: #f8f9fc;
+            color: var(--admin-primary);
+            border-color: #dcdff0;
+        }
+        .list-group-item {
+            border-color: var(--admin-border) !important;
+            padding: 16px 20px;
+            border-radius: 10px !important;
+            margin-bottom: 8px;
+            background: #ffffff;
+        }
+        .btn-action-edit {
+            color: var(--admin-primary);
+            background: var(--admin-bg-light);
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+        }
+        .btn-action-edit:hover {
+            background: #e4dcff;
+        }
+        .btn-action-delete {
+            color: #d14343;
+            background: #fff0f0;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+        }
+        .btn-action-delete:hover {
+            background: #ffe2e2;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container mt-5 mb-5" style="max-width: 800px;">
     <h2>콘서트 배역 관리</h2>
     <input type="hidden" id="concertId" th:value="${concertId}">
 
     <!-- 새 배역 등록 폼 -->
-    <div class="card p-4 shadow-sm mb-4">
+    <div class="form-card">
         <h4>새 배역 추가</h4>
         <div class="mb-3">
             <label class="form-label">배역 이름 (예: 엘리자벳, 토텐)</label>
@@ -21,26 +138,26 @@
             <label class="form-label">배역 설명</label>
             <input type="text" id="description" class="form-control">
         </div>
-        <button type="button" class="btn btn-primary" onclick="registerRole()">배역 추가하기</button>
+        <button type="button" class="btn-theme-primary" onclick="registerRole()">배역 추가하기</button>
     </div>
 
     <!-- 등록된 배역 목록 -->
-    <div class="card p-4 shadow-sm">
+    <div class="form-card">
         <h4>등록된 배역 목록</h4>
         <ul class="list-group mt-3" id="roleList">
-            <li th:each="role : ${roles}" class="list-group-item d-flex justify-content-between align-items-center">
+            <li th:each="role : ${roles}" class="list-group-item d-flex justify-content-between align-items-center shadow-sm">
                 <div>
-                    <strong th:text="${role.roleName}">배역 이름</strong>
-                    <span class="text-muted ms-2" th:text="${role.description}">설명</span>
+                    <strong class="text-dark" th:text="${role.roleName}">배역 이름</strong>
+                    <span class="text-muted ms-2 small" th:text="${role.description}">설명</span>
                 </div>
 				
-				<div>
-				    <!-- [수정] 버튼 추가: 타임리프 따옴표와 문자열 파라미터 전달 방식 주의 -->
-				    <button class="btn btn-sm btn-outline-secondary me-1" 
+				<div class="d-flex gap-1">
+				    <!-- [수정] 버튼 추가 -->
+				    <button class="btn-action-edit" 
 				            th:onclick="updateRole([[${role.roleId}]], [[${role.roleName}]], [[${role.description}]])">수정</button>
 				    
 				    <!-- [삭제] 버튼 -->
-				    <button class="btn btn-sm btn-danger" th:onclick="'deleteRole(' + ${role.roleId} + ')'">삭제</button>
+				    <button class="btn-action-delete" th:onclick="'deleteRole(' + ${role.roleId} + ')'">삭제</button>
 				</div>
                
             </li>
@@ -48,7 +165,7 @@
     </div>
     
     <div class="mt-4">
-        <a th:href="@{/settings/concert/{id}(id=${concertId})}" class="btn btn-secondary">콘서트 상세로 돌아가기</a>
+        <a th:href="@{/settings/concert/{id}(id=${concertId})}" class="btn-theme-secondary">콘서트 상세로 돌아가기</a>
     </div>
 </div>
 

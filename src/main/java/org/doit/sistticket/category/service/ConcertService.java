@@ -48,6 +48,7 @@ public interface ConcertService {
 
                     return ConcertDetailResponseDTO.PerformanceInfoItem.builder()
                             .performanceId(perf.getPerformanceId())
+                            .performanceSeq(perf.getPerformanceSeq())
                             .performanceDate(perf.getPerformanceDate())
                             .bookingStart(perf.getBookingStart())
                             .bookingEnd(perf.getBookingEnd())

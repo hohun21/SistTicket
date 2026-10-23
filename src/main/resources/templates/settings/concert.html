@@ -7,113 +7,166 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --gradient-orange: linear-gradient(135deg, #ff7e00 0%, #ff5100 100%);
-            --hover-orange: #e04800;
+            --admin-primary: #7456df;
+            --admin-primary-hover: #6243cf;
+            --admin-bg-light: #f0eaff;
+            --admin-border: #e8ebf2;
+            --admin-text-dark: #202938;
+            --admin-text-muted: #7b8497;
         }
         body {
-            background-color: #f4f6f9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fc;
+            color: var(--admin-text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         
-        /* 💡 그라데이션 버튼 및 배지 */
-        .btn-gradient {
-            background: var(--gradient-orange);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
+        /* 이전으로 버튼 */
+        .btn-back {
+            padding: 8px 16px;
+            background-color: #ffffff;
+            color: #495057;
+            border: 1px solid var(--admin-border);
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(25, 35, 60, 0.02);
+            display: inline-flex;
+            align-items: center;
         }
-        .btn-gradient:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
-            color: white;
+        .btn-back:hover {
+            background-color: #f5f5fa;
+            color: var(--admin-primary);
+            border-color: #dcdff0;
         }
 
-        /* 💡 완벽하게 중앙 정렬된 모던 그라데이션 탭 바 */
+        /* 보라색 단일 톤 등록 버튼 */
+        .btn-theme-primary {
+            background: var(--admin-primary);
+            border: none;
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 10px 20px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .btn-theme-primary:hover {
+            background: var(--admin-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(116, 86, 223, 0.25);
+        }
+
+        /* 탭 바 통일 */
         .nav-pills-custom .nav-link {
             background: #ffffff;
-            color: #495057;
-            font-weight: 600;
-            border-radius: 50px;
-            padding: 10px 22px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid #eaeaea;
+            color: #53647b;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 9px;
+            padding: 8px 18px;
+            border: 1px solid var(--admin-border);
+            box-shadow: 0 2px 6px rgba(25, 35, 60, 0.02);
+            transition: all 0.2s ease;
         }
         .nav-pills-custom .nav-link:hover {
-            background: #fff3ec;
-            color: #ff5100;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(255, 81, 0, 0.1);
-            border-color: #ffd0b5;
+            background: var(--admin-bg-light);
+            color: var(--admin-primary);
+            border-color: #dcdff0;
         }
         .nav-pills-custom .nav-link.active {
-            background: var(--gradient-orange) !important;
-            color: white !important;
-            box-shadow: 0 6px 15px rgba(255, 81, 0, 0.35);
-            border-color: transparent;
+            background: var(--admin-primary) !important;
+            color: #ffffff !important;
+            border-color: var(--admin-primary);
+            box-shadow: 0 4px 12px rgba(116, 86, 223, 0.25);
         }
 
-        /* 공연 카드 스타일 */
+        /* 툴바 / 검색 입력창 */
+        .members-toolbar-card {
+            background: #ffffff;
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+            box-shadow: 0 3px 12px rgba(25, 35, 60, 0.03);
+            padding: 18px;
+        }
+        .form-select, .form-control {
+            height: 42px;
+            border: 1px solid #e0e5ee;
+            border-radius: 9px !important;
+            font-size: 13px;
+            color: #344054;
+        }
+        .form-select:focus, .form-control:focus {
+            border-color: #8063e7;
+            box-shadow: 0 0 0 3px rgba(128, 99, 231, 0.12);
+        }
+
+        /* 공연 카드 스타일 통일 */
         .concert-card {
-            transition: all 0.3s ease;
-            border: none;
-            border-radius: 16px;
+            transition: all 0.2s ease;
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
             overflow: hidden;
             background: #ffffff;
+            box-shadow: 0 4px 16px rgba(25, 35, 60, 0.03);
         }
         .concert-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(25, 35, 60, 0.06) !important;
+            border-color: #dcdff0;
         }
 
-        /* 페이지네이션 커스텀 */
+        /* 페이지네이션 */
         .pagination .page-item .page-link {
-            color: #ff5100;
+            color: #53647b;
+            font-size: 13px;
+            font-weight: 600;
             border-radius: 8px;
             margin: 0 3px;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--admin-border);
         }
         .pagination .page-item.active .page-link {
-            background: var(--gradient-orange);
-            border-color: transparent;
-            color: white;
+            background: var(--admin-primary);
+            border-color: var(--admin-primary);
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
+<div class="container py-4" style="max-width: 1100px;">
 
     <!-- 💡 상단 헤더 & '이전으로' 버튼 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a th:href="@{/settings/main}" style="text-decoration: none;">
-                <button type="button" 
-                        style="padding: 6px 14px; background-color: #ffffff; color: #495057; border: 1px solid #ced4da; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);"
-                        onmouseover="this.style.backgroundColor='#f1f3f5'; this.style.borderColor='#adb5bd';"
-                        onmouseout="this.style.backgroundColor='#ffffff'; this.style.borderColor='#ced4da';">
+            <a th:href="@{http://localhost:5173/admin/settings/main}" style="text-decoration: none;">
+                <button type="button" class="btn-back">
                     <i class="fa-solid fa-arrow-left me-1"></i> 관리자 메인으로
                 </button>
             </a>
-            <h2 class="fw-bold text-dark mt-2 mb-1">
-                <i class="fa-solid fa-microphone-lines me-2" style="background: var(--gradient-orange); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>공연 관리 대시보드
+            <h2 class="fw-bold mt-3 mb-1" style="font-size: 26px; letter-spacing: -0.8px;">
+                <i class="fa-solid fa-microphone-lines me-2" style="color: var(--admin-primary);"></i>공연 관리 대시보드
             </h2>
             <p class="text-muted small mb-0">등록된 전체 공연 및 뮤지컬 정보를 직관적으로 관리할 수 있습니다.</p>
         </div>
         <!-- 콘서트 등록 버튼 -->
-        <a th:href="@{/settings/concert/new}" class="btn btn-gradient shadow-sm fw-bold px-4 py-2 rounded-pill">
-            <i class="fa-solid fa-plus me-1"></i> 콘서트/뮤지컬 등록하기
+        <a th:href="@{/settings/concert/new}" class="btn-theme-primary">
+            <i class="fa-solid fa-plus me-1.5"></i> 콘서트/뮤지컬 등록하기
         </a>
     </div>
 
     <!-- 💡 검색창 및 필터 카드 -->
-    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-white">
-        <form th:action="@{/settings/concert}" method="get" class="row g-3 align-items-center">
+    <div class="members-toolbar-card mb-4">
+        <form th:action="@{/settings/concert}" method="get" class="row g-2 align-items-center">
             <input type="hidden" name="genreId" th:value="${searchDTO.genreId}">
         
-            <div class="col-md-2">
-                <select name="type" class="form-select rounded-pill px-3" th:value="${searchDTO.type}">
+            <div class="col-md-3">
+                <select name="type" class="form-select px-3" th:value="${searchDTO.type}">
                     <option value="nv" th:selected="${searchDTO.type == 'nv'}">전체 (제목+장소)</option>
                     <option value="n" th:selected="${searchDTO.type == 'n'}">공연명</option>
                     <option value="v" th:selected="${searchDTO.type == 'v'}">공연장</option>
@@ -122,21 +175,21 @@
         
             <div class="col-md-6">
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-pill ps-3 text-muted"><i class="fa-solid fa-search"></i></span>
-                    <input type="text" name="searchKeyword" class="form-control border-0 bg-light rounded-end-pill py-2" 
+                    <span class="input-group-text bg-light border-end-0 text-muted" style="border-radius: 9px 0 0 9px;"><i class="fa-solid fa-search"></i></span>
+                    <input type="text" name="searchKeyword" class="form-control border-start-0 py-2" style="border-radius: 0 9px 9px 0 !important;"
                            placeholder="검색어를 입력하세요" th:value="${searchDTO.searchKeyword}">
                 </div>
             </div>
         
-            <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn btn-gradient rounded-pill flex-grow-1 py-2 fw-semibold"><i class="fa-solid fa-magnifying-glass me-1"></i> 검색</button>
-                <a th:href="@{/settings/concert(genreId=${searchDTO.genreId})}" class="btn btn-outline-secondary rounded-pill flex-grow-1 py-2 fw-semibold">초기화</a>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn-theme-primary w-100 py-2"><i class="fa-solid fa-magnifying-glass me-1"></i> 검색</button>
+                <a th:href="@{/settings/concert(genreId=${searchDTO.genreId})}" class="btn btn-outline-secondary w-100 py-2 d-inline-flex align-items-center justify-content-center" style="border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none;">초기화</a>
             </div>
         </form>
     </div>
 		
-    <!-- 💡 장르별 탭 메뉴 (완벽한 중앙 정렬 및 그라데이션 포인트) -->
-    <div class="d-flex justify-content-center mb-5">
+    <!-- 💡 장르별 탭 메뉴 -->
+    <div class="d-flex justify-content-center mb-4">
         <ul class="nav nav-pills nav-pills-custom gap-2 flex-wrap justify-content-center">
             <li class="nav-item">
                 <a class="nav-link" th:classappend="${searchDTO.genreId == null} ? 'active' : ''" 
@@ -157,41 +210,41 @@
     <div class="row row-cols-1 row-cols-md-3 g-4">
         <th:block th:if="${concertList != null and !concertList.isEmpty()}">
             <div class="col" th:each="concert : ${concertList}">
-                <div class="card concert-card h-100 shadow-sm position-relative">
+                <div class="card concert-card h-100 position-relative">
                     <!-- 수정 버튼 -->
                     <a th:href="@{/settings/concert/edit/{id}(id=${concert.concertId})}" 
-                       class="position-absolute top-0 end-0 m-3 btn btn-sm btn-light shadow-sm fw-bold text-dark rounded-pill px-3 py-1" style="font-size: 12px; z-index: 10;">
+                       class="position-absolute top-0 end-0 m-3 btn btn-sm btn-light shadow-sm fw-bold text-dark rounded-pill px-3 py-1" style="font-size: 11px; z-index: 10; border: 1px solid #e0e5ee;">
                         ✏️ 수정
                     </a>
                     <!-- 포스터 이미지 -->
-                    <div style="height: 250px; overflow: hidden; background-color: #f1f3f5;">
+                    <div style="height: 220px; overflow: hidden; background-color: #f8f9fc; border-bottom: 1px solid var(--admin-border);">
                         <img th:src="${concert.imgUrl != null ? concert.imgUrl :  '/images/brand/sist-ticket-logo-v1.png'}" class="w-100 h-100" style="object-fit: cover;">
                     </div>
                     <!-- 카드 본문 -->
-                    <div class="card-body d-flex flex-column p-4">
+                    <div class="card-body d-flex flex-column p-3 text-start">
                         <div class="mb-2">
-                            <span class="badge rounded-pill bg-light text-dark border px-2 py-1" style="font-size: 11px;" th:text="${concert.genreName}">장르</span>
+                            <span class="badge rounded-pill" style="background: var(--admin-bg-light); color: var(--admin-primary); font-size: 11px; font-weight: 750;" th:text="${concert.genreName}">장르</span>
                         </div>
-                        <h5 class="card-title fw-bold text-dark mb-2 text-truncate" th:text="${concert.concertName}">공연 제목</h5>
-                        <p class="card-text text-muted small mb-2"><i class="fa-solid fa-location-dot me-1 text-danger"></i> <span th:text="${concert.venueName}">공연장</span></p>
+                        <h5 class="card-title fw-bold mb-2 text-truncate" style="font-size: 15px; color: #263247;" th:text="${concert.concertName}">공연 제목</h5>
+                        <p class="card-text text-muted small mb-1"><i class="fa-solid fa-location-dot me-1 text-danger"></i> <span th:text="${concert.venueName}">공연장</span></p>
                         <p class="card-text small text-secondary mb-1">
                             <i class="fa-regular fa-calendar-days me-1"></i>
                             <span th:text="${#temporals.format(concert.startDate, 'yyyy-MM-dd')}"></span> ~ 
                             <span th:text="${#temporals.format(concert.endDate, 'yyyy-MM-dd')}"></span>
                         </p>
-                        <p class="card-text small text-muted mt-auto mb-3">
+                        <p class="card-text small text-muted mt-auto mb-2">
                             <i class="fa-regular fa-clock me-1"></i> <small>러닝타임: <span th:text="${concert.runTimeMinutes + '분'}">120분</span></small>
                         </p>
                     </div>
                     <!-- 카드 하단 버튼 -->
-                    <div class="card-footer bg-white border-top-0 pb-4 px-4">
-                        <a th:href="@{/settings/concert/{id}(id=${concert.concertId})}" class="btn btn-outline-dark btn-sm w-100 rounded-pill py-2 fw-semibold">상세보기</a>
+                    <div class="card-footer bg-white border-top-0 pb-3 px-3">
+                        <a th:href="@{/settings/concert/{id}(id=${concert.concertId})}" class="btn-theme-primary w-100 py-2">상세보기</a>
                     </div>
                 </div>
             </div>
         </th:block>
         <th:block th:if="${concertList == null or concertList.isEmpty()}">
-            <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
+            <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm" style="border: 1px solid var(--admin-border);">
                 <i class="fa-regular fa-folder-open fa-3x text-muted mb-3"></i>
                 <p class="text-muted mb-0">해당 조건에 등록된 공연이 없습니다.</p>
             </div>
@@ -199,21 +252,6 @@
     </div>
 
     <!-- 페이징 네비게이션바 -->
-    <nav th:if="${concertList.totalPages > 0}" class="mt-5">
+    <nav th:if="${concertList.totalPages > 0}" class="mt-4">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${concertList.first} ? 'disabled'">
-                <a class="page-link shadow-sm px-3 py-2" th:href="@{/settings/concert(page=${concertList.number - 1}, genreId=${searchDTO.genreId})}">이전</a>
-            </li>
-            <li class="page-item" th:each="num : ${#numbers.sequence(0, concertList.totalPages - 1)}" th:classappend="${num == concertList.number} ? 'active'">
-                <a class="page-link shadow-sm px-3 py-2" th:href="@{/settings/concert(page=${num}, genreId=${searchDTO.genreId})}" th:text="${num + 1}"></a>
-            </li>
-            <li class="page-item" th:classappend="${concertList.last} ? 'disabled'">
-                <a class="page-link shadow-sm px-3 py-2" th:href="@{/settings/concert(page=${concertList.number + 1}, genreId=${searchDTO.genreId})}">다음</a>
-            </li>
-        </ul>
-    </nav>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.css"></script>
-</body>
-</html>

@@ -79,4 +79,8 @@ public class OrdersDetail {
         this.status = OrdersDetailStatus.CANCELLED;
     }
     
+    public void cancelRequest() {
+        this.status = OrdersDetailStatus.CANCELREQUEST;
+    }
+    
 } // class

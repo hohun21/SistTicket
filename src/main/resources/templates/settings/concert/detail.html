@@ -4,23 +4,120 @@
     <meta charset="UTF-8">
     <title>SistTicket - 공연 상세</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin-primary: #7456df;
+            --admin-primary-hover: #6243cf;
+            --admin-bg-light: #f0eaff;
+            --admin-border: #e8ebf2;
+            --admin-text-dark: #202938;
+            --admin-text-muted: #7b8497;
+        }
+        body {
+            background-color: #f8f9fc;
+            color: var(--admin-text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .page-link-back {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: #ffffff;
+            color: #495057;
+            border: 1px solid var(--admin-border);
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(25, 35, 60, 0.02);
+        }
+        .page-link-back:hover {
+            background-color: #f5f5fa;
+            color: var(--admin-primary);
+            border-color: #dcdff0;
+        }
+        .btn-theme-primary {
+            background: var(--admin-primary);
+            border: none;
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .btn-theme-primary:hover {
+            background: var(--admin-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(116, 86, 223, 0.25);
+        }
+        .btn-theme-secondary {
+            background: #ffffff;
+            color: #53647b;
+            border: 1px solid var(--admin-border);
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-theme-secondary:hover {
+            background: #f8f9fc;
+            color: var(--admin-primary);
+            border-color: #dcdff0;
+        }
+        .btn-theme-danger {
+            background: #fff0f0;
+            color: #d14343;
+            border: none;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+        }
+        .btn-theme-danger:hover {
+            background: #ffe2e2;
+        }
+        .content-card {
+            background: #ffffff;
+            border: 1px solid var(--admin-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(25, 35, 60, 0.03);
+            padding: 24px;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <div class="container my-5">
+    <div class="container my-5" style="max-width: 1000px;">
 		
-		
-		<div class="mt-4">
-		<a class="page-link" th:href="@{/settings/concert}">  <h4>◀ 목록 보기</h4> </a>
-			<!-- 삭제 버튼 예시 -->
-			<button type="button" class="btn btn-danger" th:onclick="'deleteConcert(' + ${concert.concertId} + ')'">삭제하기</button>
-		    <!-- 1. 배역 관리 페이지로 이동하는 버튼 -->
-		    <a th:href="@{/settings/concert/{id}/roles(id=${concert.concertId})}" class="btn btn-secondary me-2">배역 관리</a>
+		<div class="mt-4 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <a class="page-link-back" th:href="@{/settings/concert}">
+                <i class="fa-solid fa-arrow-left me-1.5"></i> 목록 보기
+            </a>
+            <div class="d-flex gap-2 align-items-center">
+		        <!-- 1. 배역 관리 페이지로 이동하는 버튼 -->
+		        <a th:href="@{/settings/concert/{id}/roles(id=${concert.concertId})}" class="btn-theme-secondary">배역 관리</a>
 
-		    <!-- 2. 회차 생성 페이지로 이동하는 버튼 -->
-		    <a th:href="@{/settings/concert/{id}/performance/new(id=${concert.concertId})}" class="btn btn-primary">회차 생성</a>
-		    <a th:href="@{/settings/concert/edit/{id}(id=${concert.concertId})}"  class="btn btn-primary">✏️ 공연 정보 수정</a>
+		        <!-- 2. 회차 생성 페이지로 이동하는 버튼 -->
+		        <a th:href="@{/settings/concert/{id}/performance/new(id=${concert.concertId})}" class="btn-theme-primary">회차 생성</a>
+		        <a th:href="@{/settings/concert/edit/{id}(id=${concert.concertId})}" class="btn-theme-secondary">✏️ 공연 정보 수정</a>
+                <!-- 삭제 버튼 -->
+			    <button type="button" class="btn-theme-danger" th:onclick="'deleteConcert(' + ${concert.concertId} + ')'">삭제하기</button>
+            </div>
 		</div>
+
 		<script>
 		    function deleteConcert(concertId) {
 		        if (!confirm("정말 이 콘서트를 삭제하시겠습니까?")) {
@@ -46,22 +143,22 @@
 		</script>
      
         <!-- 상단: 공연 기본 정보 영역 (포스터 + 기본 개요) -->
-        <div class="row bg-white p-4 rounded shadow-sm mb-4">
+        <div class="row content-card mb-4 align-items-center">
             <!-- 좌측: 공연 포스터 -->
-            <div class="col-md-4 text-center">
-                <img th:src="${concert?.imgUrl != null && concert.imgUrl != '' ? concert.imgUrl : '/images/brand/sist-ticket-logo-v1.png'}" class="img-fluid rounded shadow" alt="공연 포스터" style="max-height: 400px; object-fit: cover;">
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+                <img th:src="${concert?.imgUrl != null && concert.imgUrl != '' ? concert.imgUrl : '/images/brand/sist-ticket-logo-v1.png'}" class="img-fluid rounded" alt="공연 포스터" style="max-height: 350px; object-fit: cover; border: 1px solid var(--admin-border);">
             </div>
             
             <!-- 우측: 상세 정보 및 예매 요약 -->
             <div class="col-md-8 d-flex flex-column justify-content-between">
                 <div>
-                    <span class="badge bg-primary mb-2" th:text="${concert.genreName}">장르</span>
-                    <h2 class="fw-bold mb-3" th:text="${concert.concertName}">공연 제목</h2>
+                    <span class="badge mb-2" style="background: var(--admin-bg-light); color: var(--admin-primary); font-weight: 750; font-size: 11px;" th:text="${concert.genreName}">장르</span>
+                    <h2 class="fw-bold mb-3" style="font-size: 22px; color: var(--admin-text-dark);" th:text="${concert.concertName}">공연 제목</h2>
                     
-                    <ul class="list-unstyled text-muted small mb-4">
+                    <ul class="list-unstyled text-muted small mb-4" style="line-height: 1.8;">
                         <li class="mb-2"><strong>장소:</strong> <span th:text="${concert.venueName}">공연장 이름</span> (<span th:text="${concert.venueAddress}">주소</span>)
 							<!-- 러닝타임 출력 예시 -->
-							<p class="card-text">
+							<p class="card-text mb-0 mt-1">
 							    <strong>러닝타임:</strong> 
 							    <span th:text="${concert.runTimeMinutes != null ? concert.runTimeMinutes + '분' : '정보 없음'}">120분</span>
 							</p>
@@ -77,48 +174,48 @@
                 
                 <!-- 예매하기 버튼 영역 (하단 고정 느낌) -->
                 <div>
-                    <a href="#performanceSection" class="btn btn-dark btn-lg w-100">예매하기 / 회차 선택</a>
+                    <a href="#performanceSection" class="btn-theme-primary w-100 py-2.5 text-center justify-content-center">예매하기 / 회차 선택</a>
                 </div>
             </div>
         </div>
 
         <!-- 하단: 회차 일정 및 캐스팅 정보 선택 영역 -->
-        <div id="performanceSection" class="bg-white p-4 rounded shadow-sm">
-            <h4 class="fw-bold mb-4 border-bottom pb-2">🎟️ 회차 및 캐스팅 일정 선택</h4>
+        <div id="performanceSection" class="content-card mb-4">
+            <h4 class="fw-bold mb-4 pb-2" style="font-size: 18px; border-bottom: 1px solid var(--admin-border);">🎟️ 회차 및 캐스팅 일정 선택</h4>
 
             <!-- 회차 리스트 반복 -->
             <div class="accordion" id="performanceAccordion">
-                <div class="accordion-item mb-3 border" th:each="perf, iterStat : ${concert.performanceList}">
+                <div class="accordion-item mb-3" style="border: 1px solid var(--admin-border); border-radius: 12px; overflow: hidden;" th:each="perf, iterStat : ${concert.performanceList}">
                     <h2 class="accordion-header" th:id="'heading' + ${iterStat.index}">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" 
-                                th:data-bs-target="'#collapse' + ${iterStat.index}" aria-expanded="true" 
-                                th:aria-controls="'collapse' + ${iterStat.index}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                th:data-bs-target="'#collapse' + ${iterStat.index}" aria-expanded="false" 
+                                th:aria-controls="'collapse' + ${iterStat.index}" style="background-color: #f8f9fc; font-weight: 600;">
                             <div class="w-100 d-flex justify-content-between align-items-center pe-3">
-                                <span class="fw-bold text-dark">
+                                <span class="text-dark">
                                     [회차 <span th:text="${iterStat.count}">1</span>] 
                                     <span th:text="${#temporals.format(perf.performanceDate, 'yyyy-MM-dd HH:mm')}">공연 일시</span>
                                 </span>
-                                <span class="badge bg-secondary" th:text="${perf.status}">상태</span>
+                                <span class="badge" style="background: var(--admin-bg-light); color: var(--admin-primary);" th:text="${perf.status}">상태</span>
                             </div>
                         </button>
                     </h2>
                     
-                    <div th:id="'collapse' + ${iterStat.index}" class="accordion-collapse collapse show" 
+                    <div th:id="'collapse' + ${iterStat.index}" class="accordion-collapse collapse" 
                          th:aria-labelledby="'heading' + ${iterStat.index}" data-bs-parent="#performanceAccordion">
-                        <div class="accordion-body bg-light">
+                        <div class="accordion-body bg-white p-3">
                             <p class="small text-muted mb-2">
                                 예매 가능 기간: 
                                 <span th:text="${#temporals.format(perf.bookingStart, 'yyyy-MM-dd HH:mm')}">시작</span> ~ 
                                 <span th:text="${#temporals.format(perf.bookingEnd, 'yyyy-MM-dd HH:mm')}">마감</span>
                             </p>
                             
-                            <hr class="my-2">
+                            <hr class="my-2" style="border-color: var(--admin-border);">
                             
                             <!-- 캐스팅 정보 출력 -->
                             <h6 class="fw-bold text-secondary small mb-2">출연진 캐스팅</h6>
                             <div class="row row-cols-1 row-cols-md-3 g-2">
                                 <div class="col" th:each="cast : ${perf.casts}">
-                                    <div class="p-2 bg-white border rounded small">
+                                    <div class="p-2 bg-light border rounded small" style="border-color: var(--admin-border) !important;">
                                         <span class="text-muted" th:text="${cast.roleName}">역할명</span>: 
                                         <strong class="text-dark" th:text="${cast.actorName}">배우명</strong>
                                     </div>
@@ -137,16 +234,15 @@
 							<!-- 좌석 선택 및 관리 버튼 영역 -->
 							<div class="mt-3 d-flex justify-content-between align-items-center">
 							    <!-- 관리자용 수정/삭제 버튼 그룹 -->
-							    <div>
+							    <div class="d-flex gap-1">
 							        <a th:href="@{/settings/concert/{concertId}/performance/{perfId}/edit(concertId=${concert.concertId}, perfId=${perf.performanceId})}" 
-							           class="btn btn-outline-secondary btn-sm">회차 수정</a>
-							        <button type="button" class="btn btn-outline-danger btn-sm" 
+							           class="btn-theme-secondary" style="padding: 4px 10px; font-size: 12px;">회차 수정</a>
+							        <button type="button" class="btn-theme-danger" style="padding: 4px 10px; font-size: 12px;"
 							                th:onclick="'deletePerformance(' + ${perf.performanceId} + ')'">회차 삭제</button>
 							    </div>
 
 							    <!-- 일반 사용자용 좌석 선택 버튼 -->
-							   <!--  <a th:href="@{/reservation/seat(performanceId=${perf.performanceId})}" class="btn btn-primary btn-sm px-4">좌석 선택버튼</a> -->
-							    <a th:href="@{#}" class="btn btn-primary btn-sm px-4">좌석 선택버튼</a>
+							    <a th:href="@{#}" class="btn-theme-primary" style="padding: 4px 12px; font-size: 12px;">좌석 선택버튼</a>
 							</div>
                         </div>
                     </div>
@@ -155,12 +251,12 @@
 
             <!-- 회차가 없을 경우 -->
             <div th:if="${concert.performanceList == null or concert.performanceList.isEmpty()}" class="text-center py-4">
-                <p class="text-muted">현재 오픈된 예매 회차가 없습니다.</p>
+                <p class="text-muted mb-0">현재 오픈된 예매 회차가 없습니다.</p>
             </div>
         </div>
         
-        <div id="reviewSection" class="bg-white p-4 rounded shadow-sm mt-4">
-            <h4 class="fw-bold mb-4 border-bottom pb-2">⭐ 관람 후기</h4>
+        <div id="reviewSection" class="content-card mt-4">
+            <h4 class="fw-bold mb-4 pb-2" style="font-size: 18px; border-bottom: 1px solid var(--admin-border);">⭐ 관람 후기</h4>
             <div id="review-list-area">
                 <div class="text-center py-4 text-muted">리뷰를 불러오는 중입니다...</div>
             </div>
@@ -168,7 +264,7 @@
         
     </div>
 
-    <!-- 부트스트랩 JS (아코디언 토글 기능 등에 필요) -->
+    <!-- 부트스트랩 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 	<script>
 	    function deletePerformance(performanceId) {
@@ -176,9 +272,8 @@
 	            return;
 	        }
 
-	        // 현재 페이지 URL에서 concertId 추출하거나 타임리프 변수 활용
 	        const pathSegments = window.location.pathname.split('/');
-	        const concertId = pathSegments[2]; // /concert/{concertId} 구조일 때
+	        const concertId = pathSegments[2];
 
 	        fetch(`/api/concert/${concertId}/performance/${performanceId}`, {
 	            method: 'DELETE'
@@ -197,9 +292,6 @@
 	        });
 	    }
 	</script>
-	</body>
-
-
     
     <script th:inline="javascript">
         document.addEventListener("DOMContentLoaded", function() {
@@ -223,20 +315,20 @@
                         const date = review.createdAt ? review.createdAt.substring(0, 10) : '';
 
                         let html = `
-                            <div class="card mb-3 border-0 border-bottom rounded-0 pb-3">
+                            <div class="card mb-3 border-0 border-bottom rounded-0 pb-3" style="border-color: var(--admin-border) !important;">
                                 <div class="card-body p-0">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
                                             <span class="text-warning fs-5 me-2">${stars}</span>
-                                            <span class="fw-bold">${review.memberName || '익명'}</span>
+                                            <span class="fw-bold" style="color: var(--admin-text-dark);">${review.memberName || '익명'}</span>
                                         </div>
                                         <span class="text-muted small">${date}</span>
                                     </div>
-                                    <p class="card-text mb-2">${review.text}</p>
+                                    <p class="card-text mb-2 text-secondary">${review.text}</p>
                         `;
 
                         if (review.imgUrl) {
-                            html += `<img src="${review.imgUrl}" class="img-fluid rounded mt-2" style="max-height: 150px; object-fit: cover;" alt="리뷰 이미지">`;
+                            html += `<img src="${review.imgUrl}" class="img-fluid rounded mt-2" style="max-height: 150px; object-fit: cover; border: 1px solid var(--admin-border);" alt="리뷰 이미지">`;
                         }
 
                         html += `</div></div>`;
