@@ -2,7 +2,9 @@ package org.doit.sistticket.actor.controller;
 
 import org.doit.sistticket.actor.domain.ActorDTO;
 import org.doit.sistticket.actor.domain.ActorRequestDTO;
+import org.doit.sistticket.actor.entity.Actor;
 import org.doit.sistticket.actor.service.ActorService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -72,5 +75,13 @@ public class ActorController {
         log.info("==> 배우 삭제 요청 ID: " + id);
         actorService.deleteActor(id);
         return "redirect:/settings/actor";
+    }
+    
+    @GetMapping("/api/actorlist")
+    @ResponseBody
+    public Page<Actor> actorApiList(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @PageableDefault(page = 0, size = 10, sort = "actorId", direction = Sort.Direction.DESC) Pageable pageable) {
+        return actorService.getActorList(keyword, pageable);
     }
 }
