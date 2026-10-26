@@ -25,6 +25,7 @@ import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.category.repository.RoleRepository;
 import org.doit.sistticket.review.entity.Reviews;
 import org.doit.sistticket.review.repository.ReviewRepository;
+import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
 import org.doit.sistticket.venue.entity.Venue;
 import org.doit.sistticket.venue.repository.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @Log4j2
 @Service
 public class ConcertServiceImpl implements ConcertService {
+	
 	private static final String R2_ENDPOINT = "https://c118a7efdddd35d3edac1db3a63ed76d.r2.cloudflarestorage.com";
 	private static final String R2_ACCESS_KEY = "8f8a91958a3c06d4ce11ba80f5d60e2f";
 	private static final String R2_SECRET_KEY = "5ab97a22e5baa3fe630165a9e770f0eada870d8672aaea80d3258ccbc2440667";
@@ -82,6 +84,8 @@ public class ConcertServiceImpl implements ConcertService {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private PerformanceSeatRepository performanceSeatRepository;
     @Override
     public List<ConcertListResponseDTO> getList() {
         // 1. 모든 콘서트 조회
@@ -298,6 +302,8 @@ public class ConcertServiceImpl implements ConcertService {
 
         // ② 회차-배역 매핑(PerformanceCast) 먼저 삭제 (회차나 배역을 지우기 전 필수!)
         performanceCastRepository.deleteByPerformance_Concert_ConcertId(concertId);
+        
+        performanceSeatRepository.deleteByPerformance_Concert_ConcertId(concertId);
 
         // ③ 회차(Performances) 삭제
         performanceRepository.deleteByConcert_ConcertId(concertId);

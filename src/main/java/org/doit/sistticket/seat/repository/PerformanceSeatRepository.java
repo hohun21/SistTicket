@@ -103,4 +103,7 @@ public interface PerformanceSeatRepository
         """)
     List<SeatPerformanceResponse> findSchedules(
             @Param("performanceId") Long performanceId);
+
+  
+    void deleteByPerformance_Concert_ConcertId(@Param("concertId") Long concertId);
 }
