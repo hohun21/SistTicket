@@ -106,4 +106,6 @@ public interface PerformanceSeatRepository
 
   
     void deleteByPerformance_Concert_ConcertId(@Param("concertId") Long concertId);
+
+	void deleteByPerformance_PerformanceId(Long performanceId);
 }

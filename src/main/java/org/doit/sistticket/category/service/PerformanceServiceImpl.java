@@ -11,6 +11,7 @@ import org.doit.sistticket.category.repository.ConcertRepository;
 import org.doit.sistticket.category.repository.PerformanceCastRepository;
 import org.doit.sistticket.category.repository.PerformancesRepository;
 import org.doit.sistticket.category.repository.RoleRepository;
+import org.doit.sistticket.seat.repository.PerformanceSeatRepository;
 import org.doit.sistticket.seat.service.SeatInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class PerformanceServiceImpl implements PerformanceService {
     private final ConcertRepository concertRepository;
     private final RoleRepository roleRepository;
     private final ActorRepository actorRepository;
+    private final PerformanceSeatRepository performanceSeatRepository;
     private final SeatInitService seatInitService;
     
     @Override
@@ -114,7 +116,7 @@ public class PerformanceServiceImpl implements PerformanceService {
     public void deletePerformance(Long performanceId) {
         // ① 회차에 속한 performance_casts 먼저 삭제
         performanceCastRepository.deleteByPerformance_PerformanceId(performanceId);
-        
+        performanceSeatRepository.deleteByPerformance_PerformanceId(performanceId);
         // ② 회차 엔티티 삭제
         performancesRepository.deleteById(performanceId);
     }
