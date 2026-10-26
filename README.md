@@ -206,8 +206,8 @@ cd SistTicket
 ~~~properties
 server.port=80
 spring.datasource.url=jdbc:mysql://localhost:3306/sistticket?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-spring.datasource.username=DB_USERNAME
-spring.datasource.password=DB_PASSWORD
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.ddl-auto=update
 ~~~
