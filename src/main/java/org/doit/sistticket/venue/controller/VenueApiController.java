@@ -57,4 +57,12 @@ public class VenueApiController {
         venueService.deleteVenue(id);
         return ResponseEntity.ok("삭제되었습니다.");
     }
+    
+ // 5. [추가] 리액트 셀렉트박스 전용 순수 장소 목록 조회 API (GET /api/venue/all)
+    @GetMapping("/all")
+    public ResponseEntity<java.util.List<org.doit.sistticket.venue.entity.Venue>> venueAllList() {
+        log.info("==> [API] 리액트용 순수 장소 전체 목록 조회 요청");
+        java.util.List<org.doit.sistticket.venue.entity.Venue> venueList = venueService.getVenueList(); // 서비스에 전체 조회 메서드가 없다면 findAll() 등을 호출
+        return ResponseEntity.ok(venueList);
+    }
 }

@@ -1,9 +1,13 @@
 package org.doit.sistticket.category.controller;
 
+import java.util.List;
+
 import org.doit.sistticket.category.dto.RoleRequestDTO;
+import org.doit.sistticket.category.entity.Role;
 import org.doit.sistticket.category.service.RoleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -19,7 +23,11 @@ import lombok.RequiredArgsConstructor;
 public class RoleRestController {
 
     private final RoleService roleService;
-
+    @GetMapping("")
+    public ResponseEntity<List<Role>> getRoles(@PathVariable("concertId") Long concertId) {
+        List<Role> roles = roleService.getRolesByConcert(concertId);
+        return ResponseEntity.ok(roles);
+    }
     @PostMapping("")
     public ResponseEntity<Long> registerRole(
             @PathVariable("concertId") Long concertId,
